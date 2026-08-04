@@ -1,0 +1,6 @@
+{
+  "name": "Wings Resort",
+  "description": "Luxury hospitality web application featuring beachfront villas, infinity pools, curated spa experiences, interactive booking, and tropical paradise escapes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
