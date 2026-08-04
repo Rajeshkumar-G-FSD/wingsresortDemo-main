@@ -2,7 +2,7 @@ import React from 'react';
 
 export const OurStory: React.FC = () => {
   return (
-    <section id="story" className="py-16 md:py-20 px-5 md:px-12 bg-[#fbf9f6] relative overflow-hidden">
+    <section id="story" className="py-16 md:py-20 px-5 md:px-12 bg-[#fbf9f6] relative">
       <div className="max-w-[1120px] mx-auto flex flex-col md:flex-row items-center gap-10 lg:gap-14">
         {/* Founders Photo Container with Organic Crop */}
         <div className="w-full md:w-1/2 relative">
@@ -48,13 +48,15 @@ export const OurStory: React.FC = () => {
         </div>
       </div>
 
-      {/* Decorative Right Arch Image */}
-      <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-64 h-96 rounded-l-[120px] overflow-hidden opacity-20 lg:opacity-80 hidden lg:block border-l-8 border-[#efeeeb] pointer-events-none">
-        <img
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAn25Hm5n2XEgfcTJsIKy_MM84d0sCWlj1dxqU072JJI9MnjlBiifPdf-cgd8zNT75s8q70WXU6TboXklSqfGpHQ0Jk7ffjP6AEPfoTZZymZE6l80xfrkKRHsePpXY7NUMtJ3ROJHjwIKyLszT0fM3YlL5egpTXjSCVGGh4WbOlNzGQdMypYpNEZMi_mPNTyrPRcFQNoZsxgtN4GC5pOlknRMpQqOABKK-DnuP0oIAnNYqfGSkZ9NweNQ"
-          alt="Tropical flora"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+      {/* Decorative Right Arch Image (clipped to section bounds so it can't cause horizontal overflow) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none hidden lg:block">
+        <div className="absolute -right-20 top-1/2 -translate-y-1/2 w-64 h-96 rounded-l-[120px] overflow-hidden opacity-20 lg:opacity-80 border-l-8 border-[#efeeeb]">
+          <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAn25Hm5n2XEgfcTJsIKy_MM84d0sCWlj1dxqU072JJI9MnjlBiifPdf-cgd8zNT75s8q70WXU6TboXklSqfGpHQ0Jk7ffjP6AEPfoTZZymZE6l80xfrkKRHsePpXY7NUMtJ3ROJHjwIKyLszT0fM3YlL5egpTXjSCVGGh4WbOlNzGQdMypYpNEZMi_mPNTyrPRcFQNoZsxgtN4GC5pOlknRMpQqOABKK-DnuP0oIAnNYqfGSkZ9NweNQ"
+            alt="Tropical flora"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </div>
       </div>
     </section>
   );

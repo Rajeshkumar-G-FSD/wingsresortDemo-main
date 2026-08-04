@@ -8,13 +8,6 @@ export const TestimonialsSection: React.FC = () => {
 
   return (
     <section id="testimonials" className="relative pt-14 pb-0 md:pt-20 bg-[#d9f1f0] px-5 md:px-12">
-      {/* Top Wave Divider transitioning from the surface section above */}
-      <div className="wave-divider wave-divider-top">
-        <svg preserveAspectRatio="none" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg">
-          <path className="wave-fill-mist" d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-        </svg>
-      </div>
-
       {/* Decorative Palm Leaves (clipped to section bounds) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -left-10 bottom-0 opacity-15 w-64 h-64">

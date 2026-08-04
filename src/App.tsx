@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { HeroSection } from './components/HeroSection';
-import { ServicesSection } from './components/ServicesSection';
 import { FeaturedVillas } from './components/FeaturedVillas';
 import { OurStory } from './components/OurStory';
 import { AmenitiesSection } from './components/AmenitiesSection';
@@ -16,6 +15,7 @@ import { FaqSection } from './components/FaqSection';
 import { PropertyDetails } from './components/PropertyDetails';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
+import { WhatsAppChatWidget } from './components/WhatsAppChatWidget';
 import { Villa, Experience, JournalPost } from './types';
 
 export function App() {
@@ -25,6 +25,7 @@ export function App() {
   const [selectedJournalPost, setSelectedJournalPost] = useState<JournalPost | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
   const [bookingPreselectVilla, setBookingPreselectVilla] = useState<Villa | null>(null);
+  const [bookingPreset, setBookingPreset] = useState<{ checkIn: string; checkOut: string; guests: number } | null>(null);
 
   useEffect(() => {
     const targets = Array.from(document.querySelectorAll<HTMLElement>('main > *'));
@@ -68,6 +69,12 @@ export function App() {
     handleNavigate('villas');
   };
 
+  const handleCheckAvailability = (checkIn: string, checkOut: string, guests: number) => {
+    setBookingPreselectVilla(null);
+    setBookingPreset({ checkIn, checkOut, guests });
+    setIsBookingOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] font-body selection:bg-[#004449] selection:text-white">
       <LoadingScreen />
@@ -77,6 +84,7 @@ export function App() {
         onNavigate={handleNavigate}
         onOpenBooking={() => {
           setBookingPreselectVilla(null);
+          setBookingPreset(null);
           setIsBookingOpen(true);
         }}
       />
@@ -88,18 +96,17 @@ export function App() {
           onExploreVillas={() => handleNavigate('services')}
           onOpenBooking={() => {
             setBookingPreselectVilla(null);
+            setBookingPreset(null);
             setIsBookingOpen(true);
           }}
           onSearchQuick={handleQuickSearch}
         />
 
-        {/* Curated Experiences */}
-        <ServicesSection onSelectExperience={(exp) => setSelectedExperience(exp)} />
-
         {/* Featured Villas & Spaces (Teal Dark Section) */}
         <FeaturedVillas
           onSelectVilla={(v) => setSelectedVilla(v)}
           onBookVillaDirect={handleOpenBookingWithVilla}
+          onCheckAvailability={handleCheckAvailability}
         />
 
         {/* Our Story / Founders */}
@@ -125,6 +132,7 @@ export function App() {
         <ConsultationCTA
           onOpenBooking={() => {
             setBookingPreselectVilla(null);
+            setBookingPreset(null);
             setIsBookingOpen(true);
           }}
         />
@@ -134,6 +142,7 @@ export function App() {
         onNavigate={handleNavigate}
         onOpenBooking={() => {
           setBookingPreselectVilla(null);
+          setBookingPreset(null);
           setIsBookingOpen(true);
         }}
       />
@@ -150,6 +159,7 @@ export function App() {
         onClose={() => setSelectedExperience(null)}
         onOpenBooking={() => {
           setSelectedExperience(null);
+          setBookingPreset(null);
           setIsBookingOpen(true);
         }}
       />
@@ -159,8 +169,12 @@ export function App() {
         onClose={() => {
           setIsBookingOpen(false);
           setBookingPreselectVilla(null);
+          setBookingPreset(null);
         }}
         preselectedVilla={bookingPreselectVilla}
+        presetCheckIn={bookingPreset?.checkIn}
+        presetCheckOut={bookingPreset?.checkOut}
+        presetGuests={bookingPreset?.guests}
       />
 
       {/* Journal Post Simple Modal */}
@@ -196,6 +210,8 @@ export function App() {
           </div>
         </div>
       )}
+
+      <WhatsAppChatWidget />
     </div>
   );
 }

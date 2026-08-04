@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { VILLAS } from '../data/resortData';
 import { Villa } from '../types';
+import { DatePickerPopover, toISO } from './DatePickerPopover';
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   preselectedVilla?: Villa | null;
+  presetCheckIn?: string;
+  presetCheckOut?: string;
+  presetGuests?: number;
 }
 
 export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
-  preselectedVilla
+  preselectedVilla,
+  presetCheckIn,
+  presetCheckOut,
+  presetGuests
 }) => {
-  if (!isOpen) return null;
-
   const [selectedVillaId, setSelectedVillaId] = useState<string>(
     preselectedVilla?.id || VILLAS[0].id
   );
@@ -25,6 +30,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [email, setEmail] = useState('');
   const [specialRequests, setSpecialRequests] = useState('');
 
+  // Guided check-in -> check-out -> guests flow
+  const [checkInOpen, setCheckInOpen] = useState(false);
+  const [checkOutOpen, setCheckOutOpen] = useState(false);
+  const [guestsOpen, setGuestsOpen] = useState(false);
+  const guestsRef = useRef<HTMLDivElement>(null);
+
   // Add-ons
   const [addons, setAddons] = useState({
     airportTransfer: true,
@@ -34,6 +45,59 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   });
 
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      if (preselectedVilla) setSelectedVillaId(preselectedVilla.id);
+
+      const hasPreset = Boolean(presetCheckIn && presetCheckOut);
+      if (presetCheckIn) setCheckIn(presetCheckIn);
+      if (presetCheckOut) setCheckOut(presetCheckOut);
+      if (presetGuests) setGuests(presetGuests);
+
+      // Only auto-open the check-in calendar when the guest hasn't already
+      // chosen dates from the "Explore our properties" search bar.
+      if (!hasPreset) {
+        const timer = window.setTimeout(() => setCheckInOpen(true), 350);
+        return () => window.clearTimeout(timer);
+      }
+      return;
+    }
+    setCheckInOpen(false);
+    setCheckOutOpen(false);
+    setGuestsOpen(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!guestsOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (guestsRef.current && !guestsRef.current.contains(e.target as Node)) {
+        setGuestsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [guestsOpen]);
+
+  const handleCheckInSelect = (date: string) => {
+    setCheckIn(date);
+    setCheckInOpen(false);
+    if (new Date(checkOut) <= new Date(date)) {
+      const next = new Date(`${date}T00:00:00`);
+      next.setDate(next.getDate() + 5);
+      setCheckOut(toISO(next));
+    }
+    window.setTimeout(() => setCheckOutOpen(true), 200);
+  };
+
+  const handleCheckOutSelect = (date: string) => {
+    setCheckOut(date);
+    setCheckOutOpen(false);
+    window.setTimeout(() => setGuestsOpen(true), 200);
+  };
+
+  if (!isOpen) return null;
 
   const selectedVilla = VILLAS.find((v) => v.id === selectedVillaId) || VILLAS[0];
 
@@ -124,65 +188,96 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         ) : (
           /* Booking Form */
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 overflow-y-auto space-y-6">
-            {/* Villa Selection & Stay Dates */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
-                  Select Accommodation
-                </label>
-                <select
-                  value={selectedVillaId}
-                  onChange={(e) => setSelectedVillaId(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
-                >
-                  {VILLAS.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name} (${v.pricePerNight}/night)
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* Villa Selection */}
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
+                Select Accommodation
+              </label>
+              <select
+                value={selectedVillaId}
+                onChange={(e) => setSelectedVillaId(e.target.value)}
+                className="w-full p-3 rounded-full bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
+              >
+                {VILLAS.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} (${v.pricePerNight}/night)
+                  </option>
+                ))}
+              </select>
+            </div>
 
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
-                  Number of Guests
-                </label>
-                <select
-                  value={guests}
-                  onChange={(e) => setGuests(Number(e.target.value))}
-                  className="w-full p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
-                >
-                  <option value={1}>1 Guest</option>
-                  <option value={2}>2 Guests</option>
-                  <option value={4}>4 Guests</option>
-                  <option value={6}>6+ Guests</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
-                  Check-In Date
-                </label>
-                <input
-                  type="date"
+            {/* Guided Stay Dates & Guests */}
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
+                Your Stay
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <DatePickerPopover
+                  label="Check-In"
+                  icon="calendar_month"
                   value={checkIn}
-                  onChange={(e) => setCheckIn(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
-                  required
+                  onSelect={handleCheckInSelect}
+                  open={checkInOpen}
+                  onOpenChange={(o) => {
+                    setCheckInOpen(o);
+                    if (o) { setCheckOutOpen(false); setGuestsOpen(false); }
+                  }}
                 />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
-                  Check-Out Date
-                </label>
-                <input
-                  type="date"
+                <DatePickerPopover
+                  label="Check-Out"
+                  icon="event_available"
                   value={checkOut}
-                  onChange={(e) => setCheckOut(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
-                  required
+                  minDate={checkIn}
+                  onSelect={handleCheckOutSelect}
+                  open={checkOutOpen}
+                  onOpenChange={(o) => {
+                    setCheckOutOpen(o);
+                    if (o) { setCheckInOpen(false); setGuestsOpen(false); }
+                  }}
                 />
+
+                {/* Guests: custom curved dropdown */}
+                <div ref={guestsRef} className="relative flex-1 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGuestsOpen(!guestsOpen);
+                      setCheckInOpen(false);
+                      setCheckOutOpen(false);
+                    }}
+                    className="group flex w-full min-w-0 items-center gap-3 rounded-full bg-[#f5f3f0] border border-[#e4e2df] px-4 py-3 text-left hover:border-[#004449] transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[#f06c52] text-lg shrink-0">group</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[9px] font-bold uppercase tracking-[.14em] text-[#6f797a]">Guests</span>
+                      <span className="block truncate text-xs font-semibold text-[#004449]">{guests} Guest{guests > 1 ? 's' : ''}</span>
+                    </span>
+                    <span className="material-symbols-outlined text-base text-[#004449] shrink-0">
+                      {guestsOpen ? 'expand_less' : 'expand_more'}
+                    </span>
+                  </button>
+
+                  {guestsOpen && (
+                    <div className="absolute right-0 sm:left-0 top-[calc(100%+8px)] z-40 w-full min-w-[200px] rounded-3xl bg-white p-2 shadow-2xl border border-[#e4e2df] animate-fadeIn">
+                      {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => {
+                            setGuests(n);
+                            setGuestsOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 rounded-full text-xs font-semibold transition-colors ${
+                            guests === n ? 'coral-gradient text-white' : 'text-[#1b1c1a] hover:bg-[#f5f3f0]'
+                          }`}
+                        >
+                          <span>{n}{n === 6 ? '+' : ''} Guest{n > 1 ? 's' : ''}</span>
+                          {guests === n && <span className="material-symbols-outlined text-sm">check</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

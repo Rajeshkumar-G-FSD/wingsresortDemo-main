@@ -1,21 +1,54 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { VILLAS } from '../data/resortData';
 import { Villa } from '../types';
+import { DatePickerPopover } from './DatePickerPopover';
 
 interface FeaturedVillasProps {
   onSelectVilla: (villa: Villa) => void;
   onBookVillaDirect: (villa: Villa) => void;
+  onCheckAvailability: (checkIn: string, checkOut: string, guests: number) => void;
 }
 
 export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   onSelectVilla,
-  onBookVillaDirect
+  onBookVillaDirect,
+  onCheckAvailability
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
-  const [guests, setGuests] = useState('2');
+  const [guests, setGuests] = useState(2);
+  const [checkInOpen, setCheckInOpen] = useState(false);
+  const [checkOutOpen, setCheckOutOpen] = useState(false);
+  const [guestsOpen, setGuestsOpen] = useState(false);
+  const guestsRef = useRef<HTMLDivElement>(null);
   const propertiesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!guestsOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (guestsRef.current && !guestsRef.current.contains(e.target as Node)) {
+        setGuestsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [guestsOpen]);
+
+  const handleCheckInSelect = (date: string) => {
+    setCheckIn(date);
+    setCheckInOpen(false);
+    if (checkOut && new Date(checkOut) <= new Date(date)) {
+      setCheckOut('');
+    }
+    window.setTimeout(() => setCheckOutOpen(true), 200);
+  };
+
+  const handleCheckOutSelect = (date: string) => {
+    setCheckOut(date);
+    setCheckOutOpen(false);
+    window.setTimeout(() => setGuestsOpen(true), 200);
+  };
 
   useEffect(() => {
     const element = propertiesRef.current;
@@ -44,31 +77,80 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
             <p className="text-[10px] font-bold uppercase tracking-[.22em] text-[#8fd2d8]">Find your perfect stay</p>
             <h2 className="mt-1 font-headline text-2xl text-white sm:text-3xl">Explore our properties</h2>
           </div>
-          <form className="mx-auto grid max-w-[940px] grid-cols-1 gap-2 rounded-2xl bg-white p-2 shadow-xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]" onSubmit={(event) => event.preventDefault()}>
-            <label className="group flex min-w-0 items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-[#f5f3f0]">
-              <span className="material-symbols-outlined text-[#f06c52]">calendar_month</span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[9px] font-bold uppercase tracking-[.14em] text-[#6f797a]">Check-in</span>
-                <input aria-label="Check-in date" required type="date" value={checkIn} onChange={(event) => setCheckIn(event.target.value)} className="w-full bg-transparent text-sm font-semibold text-[#004449] outline-none" />
-              </span>
-            </label>
-            <label className="group flex min-w-0 items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-[#f5f3f0]">
-              <span className="material-symbols-outlined text-[#f06c52]">event_available</span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[9px] font-bold uppercase tracking-[.14em] text-[#6f797a]">Check-out</span>
-                <input aria-label="Check-out date" required type="date" value={checkOut} min={checkIn || undefined} onChange={(event) => setCheckOut(event.target.value)} className="w-full bg-transparent text-sm font-semibold text-[#004449] outline-none" />
-              </span>
-            </label>
-            <label className="group flex min-w-0 items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-[#f5f3f0]">
-              <span className="material-symbols-outlined text-[#f06c52]">group</span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[9px] font-bold uppercase tracking-[.14em] text-[#6f797a]">Guests</span>
-                <select aria-label="Number of guests" value={guests} onChange={(event) => setGuests(event.target.value)} className="w-full appearance-none bg-transparent text-sm font-semibold text-[#004449] outline-none">
-                  <option value="1">1 guest</option><option value="2">2 guests</option><option value="3">3 guests</option><option value="4">4 guests</option><option value="5">5 guests</option><option value="6">6+ guests</option>
-                </select>
-              </span>
-              <span className="material-symbols-outlined text-base text-[#004449]">keyboard_arrow_down</span>
-            </label>
+          <form
+            className="mx-auto grid max-w-[940px] grid-cols-1 gap-2 rounded-2xl bg-white p-2 shadow-xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]"
+            onSubmit={(event) => {
+              event.preventDefault();
+              onCheckAvailability(checkIn, checkOut, guests);
+            }}
+          >
+            <DatePickerPopover
+              label="Check-in"
+              icon="calendar_month"
+              value={checkIn}
+              onSelect={handleCheckInSelect}
+              open={checkInOpen}
+              onOpenChange={(o) => {
+                setCheckInOpen(o);
+                if (o) { setCheckOutOpen(false); setGuestsOpen(false); }
+              }}
+            />
+            <DatePickerPopover
+              label="Check-out"
+              icon="event_available"
+              value={checkOut}
+              minDate={checkIn}
+              onSelect={handleCheckOutSelect}
+              open={checkOutOpen}
+              onOpenChange={(o) => {
+                setCheckOutOpen(o);
+                if (o) { setCheckInOpen(false); setGuestsOpen(false); }
+              }}
+            />
+
+            {/* Guests: custom curved dropdown */}
+            <div ref={guestsRef} className="relative min-w-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setGuestsOpen(!guestsOpen);
+                  setCheckInOpen(false);
+                  setCheckOutOpen(false);
+                }}
+                className="group flex w-full min-w-0 items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-[#f5f3f0]"
+              >
+                <span className="material-symbols-outlined text-[#f06c52]">group</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[9px] font-bold uppercase tracking-[.14em] text-[#6f797a]">Guests</span>
+                  <span className="block text-sm font-semibold text-[#004449]">{guests} guest{guests > 1 ? 's' : ''}</span>
+                </span>
+                <span className="material-symbols-outlined text-base text-[#004449]">
+                  {guestsOpen ? 'expand_less' : 'keyboard_arrow_down'}
+                </span>
+              </button>
+
+              {guestsOpen && (
+                <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-40 rounded-3xl bg-white p-2 shadow-2xl border border-[#e4e2df] animate-fadeIn">
+                  {[1, 2, 3, 4, 5, 6].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => {
+                        setGuests(n);
+                        setGuestsOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-2.5 rounded-full text-xs font-semibold transition-colors ${
+                        guests === n ? 'coral-gradient text-white' : 'text-[#1b1c1a] hover:bg-[#f5f3f0]'
+                      }`}
+                    >
+                      <span>{n}{n === 6 ? '+' : ''} Guest{n > 1 ? 's' : ''}</span>
+                      {guests === n && <span className="material-symbols-outlined text-sm">check</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button type="submit" className="flex items-center justify-center gap-2 rounded-xl bg-[#f06c52] px-6 py-4 text-[10px] font-bold uppercase tracking-[.12em] text-white transition hover:bg-[#de573e]">
               Check availability <span className="material-symbols-outlined text-base">arrow_forward</span>
             </button>
@@ -221,13 +303,6 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
             <span className="material-symbols-outlined ml-2 text-lg">arrow_forward</span>
           </button>
         </div>
-      </div>
-
-      {/* Bottom Wave Divider transitioning back to surface */}
-      <div className="wave-divider wave-divider-bottom z-10">
-        <svg preserveAspectRatio="none" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg">
-          <path className="wave-fill-surface" d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
-        </svg>
       </div>
     </section>
   );

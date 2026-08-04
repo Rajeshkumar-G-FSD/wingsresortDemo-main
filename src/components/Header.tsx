@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBooking, activeSection, on
   };
 
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'glass-header shadow-sm py-4' : 'bg-[#fbf9f6]/90 backdrop-blur-md py-6'}`}>
+    <header className={`sticky top-0 z-50 w-full bg-[#fbf9f6] transition-all duration-300 ${scrolled ? 'shadow-sm py-4' : 'py-6'}`}>
       <div className="max-w-[1280px] mx-auto px-5 md:px-12 flex justify-between items-center">
         {/* Brand Logo */}
         <button
