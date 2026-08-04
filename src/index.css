@@ -115,6 +115,30 @@
 .wave-fill-primary { fill: #004449; }
 .wave-fill-surface { fill: #fbf9f6; }
 .wave-fill-surface-low { fill: #f5f3f0; }
+.wave-fill-mist { fill: #d9f1f0; }
+
+.fold-text { display: inline; color: var(--fold-color); font-size: var(--fold-size); font-weight: var(--fold-weight); line-height: .98; letter-spacing: -.04em; white-space: nowrap; }
+.fold-text-segment { display: inline-block; perspective: var(--fold-perspective); transform-style: preserve-3d; }
+.fold-text-piece { display: inline-block; position: relative; transform-style: preserve-3d; backface-visibility: hidden; will-change: transform, opacity; }
+.fold-text-piece::after { display: none; }
+
+.services-reveal > div {
+  opacity: 0;
+}
+.services-reveal.is-visible > div { animation: service-from-left 760ms cubic-bezier(.16, 1, .3, 1) forwards; }
+.services-reveal.is-visible > div:nth-child(2) { animation-delay: .14s; }
+.services-reveal.is-visible > div:nth-child(3) { animation-name: service-from-right; animation-delay: .28s; }
+.services-reveal.is-visible > div:nth-child(4) { animation-name: service-from-right; animation-delay: .42s; }
+@keyframes service-from-left { from { opacity: 0; transform: translateX(-42px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes service-from-right { from { opacity: 0; transform: translateX(42px); } to { opacity: 1; transform: translateX(0); } }
+
+.properties-reveal > * { opacity: 0; }
+.properties-reveal.is-visible > * { animation: property-wave 700ms cubic-bezier(.16, 1, .3, 1) forwards; }
+.properties-reveal.is-visible > :nth-child(2) { animation-delay: .12s; }
+.properties-reveal.is-visible > :nth-child(3) { animation-delay: .24s; }
+.properties-reveal.is-visible > :nth-child(4) { animation-delay: .36s; }
+.properties-reveal.is-visible > :nth-child(5) { animation-delay: .48s; }
+@keyframes property-wave { from { opacity: 0; transform: translateY(34px) scale(.96); } 55% { transform: translateY(-5px) scale(1.01); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 html { scroll-behavior: smooth; }
 
@@ -151,7 +175,7 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal-section, .site-loader { transition: none; }
-  .loader-mark, .loader-wordmark, .loader-subtitle, .loader-line span, .loader-copy { animation: none; }
+  .loader-mark, .loader-wordmark, .loader-subtitle, .loader-line span, .loader-copy, .services-reveal > div, .properties-reveal > * { animation: none; opacity: 1; }
 }
 
 #footer h4, #footer p, #footer li, #footer label, #footer a, #footer button:not(.coral-gradient) { color: rgba(255, 255, 255, .82); }

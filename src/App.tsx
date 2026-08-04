@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { ServicesSection } from './components/ServicesSection';
 import { FeaturedVillas } from './components/FeaturedVillas';
@@ -9,12 +8,14 @@ import { TestimonialsSection } from './components/TestimonialsSection';
 import { ResortMapSection } from './components/ResortMapSection';
 import { ConsultationCTA } from './components/ConsultationCTA';
 import { JournalSection } from './components/JournalSection';
-import { Footer } from './components/Footer';
 import { VillaModal } from './components/VillaModal';
 import { ExperienceModal } from './components/ExperienceModal';
 import { BookingModal } from './components/BookingModal';
 import { LoadingScreen } from './components/LoadingScreen';
 import { FaqSection } from './components/FaqSection';
+import { PropertyDetails } from './components/PropertyDetails';
+import { Footer } from './components/Footer';
+import { Header } from './components/Header';
 import { Villa, Experience, JournalPost } from './types';
 
 export function App() {
@@ -70,7 +71,7 @@ export function App() {
   return (
     <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] font-body selection:bg-[#004449] selection:text-white">
       <LoadingScreen />
-      {/* Header */}
+
       <Header
         activeSection={activeSection}
         onNavigate={handleNavigate}
@@ -92,6 +93,9 @@ export function App() {
           onSearchQuick={handleQuickSearch}
         />
 
+        {/* Curated Experiences */}
+        <ServicesSection onSelectExperience={(exp) => setSelectedExperience(exp)} />
+
         {/* Featured Villas & Spaces (Teal Dark Section) */}
         <FeaturedVillas
           onSelectVilla={(v) => setSelectedVilla(v)}
@@ -101,13 +105,21 @@ export function App() {
         {/* Our Story / Founders */}
         <OurStory />
 
+        <PropertyDetails />
+
+        {/* Resort Map */}
+        <ResortMapSection />
+
         {/* Why Clients Choose & Process */}
         <AmenitiesSection />
 
-        {/* Testimonials Quote Slider */}
-        <TestimonialsSection />
+        {/* Design Journal */}
+        <JournalSection onSelectPost={(post) => setSelectedJournalPost(post)} />
 
         <FaqSection />
+
+        {/* Testimonials Quote Slider */}
+        <TestimonialsSection />
 
         {/* Coral Banner CTA */}
         <ConsultationCTA
@@ -118,7 +130,6 @@ export function App() {
         />
       </main>
 
-      {/* Footer */}
       <Footer
         onNavigate={handleNavigate}
         onOpenBooking={() => {

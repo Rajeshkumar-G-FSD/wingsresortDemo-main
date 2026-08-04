@@ -34,7 +34,7 @@ export const OurStory: React.FC = () => {
           </h2>
 
           <p className="text-sm text-[#3f4849] mb-5 leading-relaxed font-body max-w-md">
-            Palm &amp; Coast was founded on a love for travel, nature, and the feeling of homes that breathe easy. We believe good design should look beautiful and feel like you.
+            Wings Resort was founded on a love for travel, nature, and the feeling of homes that breathe easy. We believe good design should look beautiful and feel like you.
           </p>
 
           <div className="mt-2 border-l-2 border-[#a93721] pl-6 py-2">

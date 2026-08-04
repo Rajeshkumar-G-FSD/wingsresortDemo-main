@@ -9,10 +9,10 @@ export const LoadingScreen: React.FC = () => {
   }, []);
 
   return (
-    <div className={`site-loader ${leaving ? 'site-loader--leaving' : ''}`} aria-label="Loading Palm and Coast">
+    <div className={`site-loader ${leaving ? 'site-loader--leaving' : ''}`} aria-label="Loading Wings Resort">
       <div className="loader-mark" aria-hidden="true">✦</div>
-      <p className="loader-wordmark">PALM &amp; COAST</p>
-      <p className="loader-subtitle">HOME STYLING STUDIO</p>
+      <p className="loader-wordmark">WINGS RESORT</p>
+      <p className="loader-subtitle">LUXURY RESORT LIVING</p>
       <div className="loader-line"><span /></div>
       <p className="loader-copy">Creating your tropical escape</p>
     </div>

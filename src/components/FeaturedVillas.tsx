@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { VILLAS } from '../data/resortData';
 import { Villa } from '../types';
 
@@ -15,6 +15,20 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState('2');
+  const propertiesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = propertiesRef.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        element.classList.add('is-visible');
+        observer.disconnect();
+      }
+    }, { threshold: .15 });
+    const timer = window.setTimeout(() => observer.observe(element), 1600);
+    return () => { window.clearTimeout(timer); observer.disconnect(); };
+  }, []);
 
   const categories = ['All', 'Oceanfront', 'Garden', 'Penthouse', 'Private Island'];
 
@@ -62,8 +76,53 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
         </div>
 
         {/* Villa Cards Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-          {filteredVillas.slice(0, 5).map((villa) => (
+        <div ref={propertiesRef} className="properties-reveal grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <article className="group flex flex-col overflow-hidden" aria-label="A-Type Bedroom">
+            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
+              <img src="/images/wings_resort_a_type_bedroom.png" alt="Wings Resort A-Type Bedroom" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+            </div>
+            <div className="flex flex-grow flex-col pt-3 text-center">
+              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">A-Type Bedroom</h3>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+            </div>
+          </article>
+          <article className="group flex flex-col overflow-hidden" aria-label="Three Bedroom Residence">
+            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
+              <img src="/images/wings_resort_threebedroom.png" alt="Wings Resort Three Bedroom Residence" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+            </div>
+            <div className="flex flex-grow flex-col pt-3 text-center">
+              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Three Bedroom Residence</h3>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+            </div>
+          </article>
+          <article className="group flex flex-col overflow-hidden" aria-label="Deluxe Three Room Suite">
+            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
+              <img src="/images/wings_deluex_three_room.jpg.png" alt="Wings Resort Deluxe Three Room Suite" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+            </div>
+            <div className="flex flex-grow flex-col pt-3 text-center">
+              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Deluxe Three Room Suite</h3>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+            </div>
+          </article>
+          <article className="group flex flex-col overflow-hidden" aria-label="Couples Bed Room">
+            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
+              <img src="/images/wings_resort_couples_bed_room.png" alt="Wings Resort Couples Bed Room" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+            </div>
+            <div className="flex flex-grow flex-col pt-3 text-center">
+              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Couples Bed Room</h3>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+            </div>
+          </article>
+          <article className="group flex flex-col overflow-hidden" aria-label="Family Bed Room">
+            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
+              <img src="/images/wings_resort_family_bed_room.png" alt="Wings Resort Family Bed Room" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+            </div>
+            <div className="flex flex-grow flex-col pt-3 text-center">
+              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Family Bed Room</h3>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+            </div>
+          </article>
+          {filteredVillas.slice(0, 2).map((villa) => (
             <div
               key={villa.id}
               className="group overflow-hidden transition-all duration-300 flex flex-col"

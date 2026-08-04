@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBooking, activeSection, on
     { id: 'hero', label: 'HOME' },
     { id: 'villas', label: 'PROPERTY' },
     { id: 'story', label: 'ABOUT US' },
-    { id: 'testimonials', label: 'REVIEW' },
+    { id: 'testimonials', label: 'REVIEWS' },
     { id: 'faq', label: 'FAQ' },
     { id: 'footer', label: 'CONTACT' },
   ];
@@ -40,33 +40,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBooking, activeSection, on
     <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'glass-header shadow-sm py-4' : 'bg-[#fbf9f6]/90 backdrop-blur-md py-6'}`}>
       <div className="max-w-[1280px] mx-auto px-5 md:px-12 flex justify-between items-center">
         {/* Brand Logo */}
-        <button 
-          onClick={() => handleNavClick('hero')} 
+        <button
+          onClick={() => handleNavClick('hero')}
           className="flex items-center gap-3 text-left group focus:outline-none"
         >
-          {/* Palm Tree Logo Mark */}
-          <div className="w-11 h-11 flex items-center justify-center text-[#004449] transition-colors duration-300">
-            <svg
-              className="w-10 h-10 stroke-current fill-none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M13 8c0-2.76-2.24-5-5-5S3 5.24 3 8c2.76 0 5 2.24 5 5" />
-              <path d="M13 8c0-2.76 2.24-5 5-5s5 2.24 5 5c-2.76 0-5 2.24-5 5" />
-              <path d="M12 13a5 5 0 0 0-5-5" />
-              <path d="M12 13a5 5 0 0 1 5-5" />
-              <path d="M12 21V8" />
-            </svg>
-          </div>
-          <div>
-            <span className="font-headline text-[22px] font-bold tracking-tight text-[#004449] block leading-none uppercase">
-              Palm & Coast
-            </span>
-            <span className="text-[9px] uppercase tracking-[0.24em] font-semibold text-[#004449] block mt-1">
-              Home Styling Studio
-            </span>
+          {/* Logo Mark */}
+          <div className="h-12 w-24 overflow-hidden md:h-14 md:w-28">
+            <img
+              src="/images/wings_resort_logo.png"
+              alt="Wings Resort"
+              className="h-full w-full object-cover object-center mix-blend-multiply"
+            />
           </div>
         </button>
 

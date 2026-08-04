@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import FoldText from './FoldText';
+import BlurText from './BlurText';
 
 interface HeroSectionProps {
   onExploreVillas: () => void;
@@ -9,13 +11,36 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onExploreVillas
 }) => {
+  const servicesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = servicesRef.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        element.classList.add('is-visible');
+        observer.disconnect();
+      }
+    }, { threshold: .2 });
+    const timer = window.setTimeout(() => observer.observe(element), 1600);
+    return () => {
+      window.clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <div className="relative bg-[#fbf9f6] text-[#1b1c1a] overflow-hidden">
       <section id="hero" className="relative z-10 pt-2 md:pt-3 pb-4 px-5 md:px-12 max-w-[1440px] mx-auto">
+        <div className="absolute left-5 top-4 z-30 md:left-12" aria-label="Wings Resort">
+          <div className="h-14 w-28 overflow-hidden md:h-16 md:w-32">
+            <img src="/images/wings_resort_logo.png" alt="Wings" className="h-full w-full object-cover object-center mix-blend-multiply" />
+          </div>
+        </div>
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0 min-h-[470px] xl:min-h-[510px]">
           
           {/* Left Column Content */}
-          <div className="relative z-20 w-full lg:w-[45%] flex flex-col items-start text-left pt-7 md:pt-10 lg:pl-10 xl:pl-12">
+          <div className="relative z-20 w-full lg:w-[45%] flex flex-col items-start text-left pt-24 md:pt-28 lg:pl-10 xl:pl-12">
             {/* Coral Line-Art Palm Tree Icon */}
             <div className="mb-3 text-[#f06c52]">
               <svg
@@ -37,15 +62,22 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
 
             {/* Headline */}
-            <h1 className="font-headline text-[48px] sm:text-6xl xl:text-[66px] text-[#004449] mb-4 leading-[1.02] tracking-[-0.04em]">
-              Tropical Soul.<br />
-              <span className="italic font-normal text-[#004449]">Beautifully Styled.</span>
+            <h1 className="font-headline mb-4 leading-[1.02] tracking-[-0.04em]">
+              <FoldText text="Tropical Soul." splitBy="char" hinge="top" trigger="mount" duration={0.65} stagger={0.045} ease="power3.out" perspective={700} creaseShading={0.55} fontSize="clamp(48px, 5vw, 66px)" fontWeight={700} color="#004449" />
+              <br />
+              <FoldText text="Beautifully Styled." splitBy="char" hinge="top" trigger="mount" duration={0.65} stagger={0.045} ease="power3.out" perspective={700} creaseShading={0.55} fontSize="clamp(48px, 5vw, 66px)" fontWeight={400} color="#004449" className="italic" />
             </h1>
 
             {/* Subtext */}
-            <p className="text-[15px] sm:text-base text-[#3f4849] mb-7 max-w-[310px] leading-[1.75] font-body font-medium">
-              We create relaxed, refined, and resort-inspired homes that bring vacation feelings to everyday living.
-            </p>
+            <BlurText
+              text="We create relaxed, refined, and resort-inspired homes that bring vacation feelings to everyday living."
+              delay={120}
+              animateBy="words"
+              direction="top"
+              startDelay={1.55}
+              onAnimationComplete={() => undefined}
+              className="text-[15px] sm:text-base text-[#3f4849] mb-7 max-w-[310px] leading-[1.75] font-body font-medium"
+            />
 
             {/* CTA Button */}
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -98,7 +130,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
 
           {/* Grid Layout: 4 Service Cards + Overlapping Arch Portal on Desktop */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4 lg:pr-60 xl:pr-72">
+          <div ref={servicesRef} className="services-reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4 lg:pr-60 xl:pr-72">
             
             {/* Card 1: Full Service Interior Design */}
             <div className="bg-[#fbf9f6] rounded-xl p-6 min-h-[258px] flex flex-col items-center text-center border border-[#e8e3dc] shadow-sm hover:shadow-md transition-all group">
