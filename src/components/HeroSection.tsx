@@ -32,11 +32,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <div className="relative bg-[#fbf9f6] text-[#1b1c1a] overflow-hidden">
       <section id="hero" className="relative z-10 pt-2 md:pt-3 pb-4 px-5 md:px-12 max-w-[1440px] mx-auto">
-        <div className="absolute left-5 top-4 z-30 md:left-12" aria-label="Wings Resort">
-          <div className="h-14 w-28 overflow-hidden md:h-16 md:w-32">
-            <img src="/images/wings_resort_logo.png" alt="Wings" className="h-full w-full object-cover object-center mix-blend-multiply" />
-          </div>
-        </div>
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0 min-h-[470px] xl:min-h-[510px]">
           
           {/* Left Column Content */}
