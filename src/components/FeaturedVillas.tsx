@@ -7,12 +7,14 @@ interface FeaturedVillasProps {
   onSelectVilla: (villa: Villa) => void;
   onBookVillaDirect: (villa: Villa) => void;
   onCheckAvailability: (checkIn: string, checkOut: string, guests: number) => void;
+  openCheckInTrigger?: number;
 }
 
 export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   onSelectVilla,
   onBookVillaDirect,
-  onCheckAvailability
+  onCheckAvailability,
+  openCheckInTrigger
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [checkIn, setCheckIn] = useState('');
@@ -23,6 +25,8 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   const [guestsOpen, setGuestsOpen] = useState(false);
   const guestsRef = useRef<HTMLDivElement>(null);
   const propertiesRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const isFirstMount = useRef(true);
 
   useEffect(() => {
     if (!guestsOpen) return;
@@ -34,6 +38,19 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [guestsOpen]);
+
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    if (openCheckInTrigger === undefined) return;
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setCheckOutOpen(false);
+    setGuestsOpen(false);
+    const timer = window.setTimeout(() => setCheckInOpen(true), 450);
+    return () => window.clearTimeout(timer);
+  }, [openCheckInTrigger]);
 
   const handleCheckInSelect = (date: string) => {
     setCheckIn(date);
@@ -78,6 +95,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
             <h2 className="mt-1 font-headline text-2xl text-white sm:text-3xl">Explore our properties</h2>
           </div>
           <form
+            ref={formRef}
             className="mx-auto grid max-w-[940px] grid-cols-1 gap-2 rounded-2xl bg-white p-2 shadow-xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]"
             onSubmit={(event) => {
               event.preventDefault();

@@ -187,15 +187,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 ))}
               </div>
 
-              {/* Book Now badge */}
-              <button
-                onClick={onOpenBooking}
-                className="absolute top-5 right-5 z-20 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#fbf9f6]/90 hover:bg-[#fbf9f6] backdrop-blur-sm text-[#004449] text-[10px] font-bold uppercase tracking-[0.12em] shadow-lg transition-all transform hover:-translate-y-0.5"
-              >
-                <span className="material-symbols-outlined text-sm">bolt</span>
-                <span>Book Now</span>
-              </button>
-
               <div className="absolute -bottom-1 -left-1 -right-1 h-24 lg:h-32 pointer-events-none z-10">
                 <svg
                   className="w-full h-full fill-[#fbf9f6]"

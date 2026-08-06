@@ -26,6 +26,7 @@ export function App() {
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
   const [bookingPreselectVilla, setBookingPreselectVilla] = useState<Villa | null>(null);
   const [bookingPreset, setBookingPreset] = useState<{ checkIn: string; checkOut: string; guests: number } | null>(null);
+  const [openCheckInTrigger, setOpenCheckInTrigger] = useState(0);
 
   useEffect(() => {
     const targets = Array.from(document.querySelectorAll<HTMLElement>('main > *'));
@@ -52,6 +53,11 @@ export function App() {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleOpenConsultation = () => {
+    handleNavigate('villas');
+    setOpenCheckInTrigger((t) => t + 1);
   };
 
   const handleOpenBookingWithVilla = (villa: Villa) => {
@@ -82,11 +88,7 @@ export function App() {
       <Header
         activeSection={activeSection}
         onNavigate={handleNavigate}
-        onOpenBooking={() => {
-          setBookingPreselectVilla(null);
-          setBookingPreset(null);
-          setIsBookingOpen(true);
-        }}
+        onOpenConsultation={handleOpenConsultation}
       />
 
       {/* Main Content */}
@@ -107,6 +109,7 @@ export function App() {
           onSelectVilla={(v) => setSelectedVilla(v)}
           onBookVillaDirect={handleOpenBookingWithVilla}
           onCheckAvailability={handleCheckAvailability}
+          openCheckInTrigger={openCheckInTrigger}
         />
 
         {/* Our Story / Founders */}

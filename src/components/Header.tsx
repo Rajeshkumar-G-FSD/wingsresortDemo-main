@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
 interface HeaderProps {
-  onOpenBooking: () => void;
+  onOpenConsultation: () => void;
   activeSection: string;
   onNavigate: (sectionId: string) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenBooking, activeSection, onNavigate }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSection, onNavigate }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -80,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBooking, activeSection, on
         {/* Book CTA & Mobile Toggle */}
         <div className="flex items-center gap-4">
           <button
-            onClick={onOpenBooking}
+            onClick={onOpenConsultation}
             className="hidden sm:inline-flex items-center gap-2 px-7 py-3 rounded-full coral-gradient text-white text-xs font-semibold uppercase tracking-[0.1em] hover:opacity-95 transition-all shadow-md shadow-[#a93721]/20 transform hover:-translate-y-0.5"
           >
             Book a Consultation
@@ -116,11 +116,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBooking, activeSection, on
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                onOpenBooking();
+                onOpenConsultation();
               }}
               className="mt-4 w-full py-4 rounded-full coral-gradient text-white text-sm font-semibold uppercase tracking-wider text-center shadow-lg"
             >
-              Book Your Stay
+              Book a Consultation
             </button>
           </div>
         </div>
