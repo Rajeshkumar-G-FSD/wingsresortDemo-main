@@ -1,7 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { VILLAS } from '../data/resortData';
 import { Villa } from '../types';
-import { DatePickerPopover } from './DatePickerPopover';
+import { DatePickerPopover, toISO } from './DatePickerPopover';
+
+const addDays = (iso: string, days: number) => {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  return toISO(d);
+};
 
 interface FeaturedVillasProps {
   onSelectVilla: (villa: Villa) => void;
@@ -103,6 +109,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
               label="Check-in"
               icon="calendar_month"
               value={checkIn}
+              minDate={toISO(new Date())}
               onSelect={handleCheckInSelect}
               open={checkInOpen}
               onOpenChange={(o) => {
@@ -114,7 +121,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
               label="Check-out"
               icon="event_available"
               value={checkOut}
-              minDate={checkIn}
+              minDate={checkIn ? addDays(checkIn, 1) : toISO(new Date())}
               onSelect={handleCheckOutSelect}
               open={checkOutOpen}
               onOpenChange={(o) => {

@@ -153,13 +153,7 @@ export function App() {
             <TestimonialsSection />
 
             {/* Coral Banner CTA */}
-            <ConsultationCTA
-              onOpenBooking={() => {
-                setBookingPreselectVilla(null);
-                setBookingPreset(null);
-                setIsBookingOpen(true);
-              }}
-            />
+            <ConsultationCTA onOpenBooking={handleOpenConsultation} />
           </>
         )}
       </main>

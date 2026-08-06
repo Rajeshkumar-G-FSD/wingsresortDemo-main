@@ -34,6 +34,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
   const [isHovered, setIsHovered] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const [archIndex, setArchIndex] = useState(0);
+  const mobileScrollRef = useRef<HTMLDivElement>(null);
+  const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
+
+  const handleMobileScroll = () => {
+    const container = mobileScrollRef.current;
+    if (!container) return;
+    const cards = Array.from(container.children) as HTMLElement[];
+    const containerCenter = container.scrollLeft + container.clientWidth / 2;
+    let closest = 0;
+    let closestDist = Infinity;
+    cards.forEach((card, i) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const dist = Math.abs(cardCenter - containerCenter);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closest = i;
+      }
+    });
+    setMobileActiveIndex(closest);
+  };
 
   useEffect(() => {
     const element = servicesRef.current;
@@ -183,32 +203,64 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
             <span className="text-[#f06c52] text-base">🌴</span>
           </div>
 
-          {/* Arched slideshow badge — mobile-only, sits in the normal flow above the service cards */}
-          <div className="mb-10 flex justify-center lg:hidden">
-            <div className="relative w-40 sm:w-48 aspect-[1/1.3]">
-              <div className="relative w-full h-full p-2 rounded-t-[110px] rounded-b-2xl bg-[#004449] shadow-2xl border-2 border-[#004449]">
-                <div className="relative w-full h-full rounded-t-[102px] rounded-b-xl overflow-hidden">
-                  {ARCH_SLIDES.map((slide, i) => (
-                    <img
-                      key={slide.src}
-                      src={slide.src}
-                      alt={slide.alt}
-                      className={`hero-slide absolute inset-0 w-full h-full object-cover ${
-                        i === archIndex ? `opacity-100 z-[1] hero-slide-active ${i % 2 === 1 ? 'hero-kenburns-alt' : ''}` : 'opacity-0 z-0'
-                      }`}
-                    />
-                  ))}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#004449]/25 via-transparent to-transparent pointer-events-none" />
-                </div>
-              </div>
-              <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#f06c52] text-white text-[9px] font-bold uppercase tracking-[0.18em] px-3 py-1.5 rounded-full shadow-md">
-                Our Signature Stays
-              </span>
+          {/* Mobile/Tablet-only: full-bleed horizontal snap-scroll service carousel */}
+          <div className="lg:hidden -mx-5 mb-8">
+            <div
+              ref={mobileScrollRef}
+              onScroll={handleMobileScroll}
+              className="no-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory px-5 pb-2"
+            >
+              {SERVICES.map((service, i) => (
+                <button
+                  key={service.id}
+                  onClick={() => onSelectService(service.id)}
+                  className="relative shrink-0 w-[76%] max-w-[300px] aspect-[3/4] rounded-[28px] overflow-hidden snap-center text-left group"
+                >
+                  <img
+                    src={service.heroImage}
+                    alt={service.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-active:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#00201f]/92 via-[#00201f]/30 to-[#00201f]/5" />
+
+                  <span className="absolute top-4 right-5 font-headline text-3xl text-white/25 font-semibold">
+                    0{i + 1}
+                  </span>
+                  <div className="absolute top-4 left-4 w-11 h-11 rounded-full bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center text-white">
+                    <ServiceIcon icon={service.icon} className="w-5 h-5" />
+                  </div>
+
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <h3 className="font-headline text-xl text-white font-semibold leading-tight mb-1.5">
+                      {service.shortTitle[0]} {service.shortTitle[1]}
+                    </h3>
+                    <p className="text-[11px] text-white/80 leading-relaxed mb-4 line-clamp-2">
+                      {service.tagline}
+                    </p>
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3.5 py-2">
+                      Learn More
+                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Progress dots */}
+            <div className="flex items-center justify-center gap-1.5 mt-5">
+              {SERVICES.map((service, i) => (
+                <span
+                  key={service.id}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === mobileActiveIndex ? 'w-6 bg-[#f06c52]' : 'w-1.5 bg-[#e4e2df]'
+                  }`}
+                />
+              ))}
             </div>
           </div>
 
           {/* Grid Layout: 4 Service Cards + Overlapping Arch Portal on Desktop */}
-          <div ref={servicesRef} className="services-reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4 lg:pr-60 xl:pr-72">
+          <div ref={servicesRef} className="services-reveal hidden lg:grid lg:grid-cols-4 gap-4 lg:pr-60 xl:pr-72">
 
             {SERVICES.map((service) => (
               <div

@@ -142,6 +142,9 @@
 
 html { scroll-behavior: smooth; }
 
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 .reveal-section {
   opacity: 0;
   transform: translateY(34px);
