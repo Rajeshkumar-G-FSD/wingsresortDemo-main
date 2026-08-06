@@ -65,16 +65,6 @@ export function App() {
     setIsBookingOpen(true);
   };
 
-  const handleQuickSearch = (
-    checkIn: string,
-    checkOut: string,
-    guests: number,
-    category: string
-  ) => {
-    // Scroll smoothly to villas section
-    handleNavigate('villas');
-  };
-
   const handleCheckAvailability = (checkIn: string, checkOut: string, guests: number) => {
     setBookingPreselectVilla(null);
     setBookingPreset({ checkIn, checkOut, guests });
@@ -94,15 +84,7 @@ export function App() {
       {/* Main Content */}
       <main>
         {/* Hero Section with Integrated Services Cards */}
-        <HeroSection
-          onExploreVillas={() => handleNavigate('services')}
-          onOpenBooking={() => {
-            setBookingPreselectVilla(null);
-            setBookingPreset(null);
-            setIsBookingOpen(true);
-          }}
-          onSearchQuick={handleQuickSearch}
-        />
+        <HeroSection />
 
         {/* Featured Villas & Spaces (Teal Dark Section) */}
         <FeaturedVillas

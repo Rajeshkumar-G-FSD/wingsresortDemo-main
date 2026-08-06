@@ -83,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
             onClick={onOpenConsultation}
             className="hidden sm:inline-flex items-center gap-2 px-7 py-3 rounded-full coral-gradient text-white text-xs font-semibold uppercase tracking-[0.1em] hover:opacity-95 transition-all shadow-md shadow-[#a93721]/20 transform hover:-translate-y-0.5"
           >
-            Book a Consultation
+            Reserve Now
             <span className="material-symbols-outlined text-base">arrow_forward</span>
           </button>
 
@@ -120,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
               }}
               className="mt-4 w-full py-4 rounded-full coral-gradient text-white text-sm font-semibold uppercase tracking-wider text-center shadow-lg"
             >
-              Book a Consultation
+              Reserve Now
             </button>
           </div>
         </div>

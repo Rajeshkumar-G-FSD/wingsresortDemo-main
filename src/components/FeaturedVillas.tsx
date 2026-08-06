@@ -26,7 +26,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   const guestsRef = useRef<HTMLDivElement>(null);
   const propertiesRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const isFirstMount = useRef(true);
+  const lastHandledTrigger = useRef(openCheckInTrigger);
 
   useEffect(() => {
     if (!guestsOpen) return;
@@ -40,11 +40,8 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   }, [guestsOpen]);
 
   useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return;
-    }
-    if (openCheckInTrigger === undefined) return;
+    if (openCheckInTrigger === undefined || openCheckInTrigger === lastHandledTrigger.current) return;
+    lastHandledTrigger.current = openCheckInTrigger;
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setCheckOutOpen(false);
     setGuestsOpen(false);

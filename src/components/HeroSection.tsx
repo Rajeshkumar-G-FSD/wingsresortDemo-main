@@ -2,12 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import FoldText from './FoldText';
 import BlurText from './BlurText';
 
-interface HeroSectionProps {
-  onExploreVillas: () => void;
-  onOpenBooking: () => void;
-  onSearchQuick?: (checkIn: string, checkOut: string, guests: number, category: string) => void;
-}
-
 const HERO_SLIDES = [
   { src: '/images/wings_resort_mainbuilding.png', alt: 'Wings Resort main building' },
   { src: '/images/wings_resort_a_house_fontview.png', alt: 'A-type house, front view' },
@@ -20,12 +14,9 @@ const HERO_SLIDES = [
   { src: '/images/wings_resort_parking.png', alt: 'Resort parking' },
 ];
 
-const SLIDE_INTERVAL = 5000;
+const SLIDE_INTERVAL = 3000;
 
-export const HeroSection: React.FC<HeroSectionProps> = ({
-  onExploreVillas,
-  onOpenBooking
-}) => {
+export const HeroSection: React.FC = () => {
   const servicesRef = useRef<HTMLDivElement>(null);
   const [slideIndex, setSlideIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -73,11 +64,72 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   return (
     <div className="relative bg-[#fbf9f6] text-[#1b1c1a] overflow-hidden">
-      <section id="hero" className="relative z-10 pt-2 md:pt-3 pb-4 px-5 md:px-12 max-w-[1440px] mx-auto">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-0 min-h-[470px] xl:min-h-[510px]">
-          
-          {/* Left Column Content */}
-          <div className="relative z-20 w-full lg:w-[45%] flex flex-col items-start text-left pt-24 md:pt-28 lg:pl-10 xl:pl-12">
+      <section
+        id="hero"
+        className="hero-slideshow relative z-10 overflow-hidden min-h-[600px] sm:min-h-[640px] lg:min-h-[700px] xl:min-h-[760px] flex items-center"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Full-bleed background slideshow */}
+        {HERO_SLIDES.map((slide, i) => (
+          <img
+            key={slide.src}
+            src={slide.src}
+            alt={slide.alt}
+            className={`hero-slide absolute inset-0 w-full h-full object-cover object-[55%_45%] ${
+              i === slideIndex ? `opacity-100 z-[1] hero-slide-active ${i % 2 === 1 ? 'hero-kenburns-alt' : ''}` : 'opacity-0 z-0'
+            }`}
+          />
+        ))}
+
+        {/* Legibility scrim: strong on the left where the text sits, easing off to the right */}
+        <div className="absolute inset-0 z-[2] pointer-events-none bg-gradient-to-r from-[#00201f]/85 via-[#00201f]/45 to-[#00201f]/10 lg:from-[#00201f]/88 lg:via-[#00201f]/40 lg:to-transparent" />
+        <div className="absolute inset-0 z-[2] pointer-events-none bg-gradient-to-t from-[#00201f]/55 via-transparent to-transparent" />
+
+        {/* Prev / Next arrows */}
+        <button
+          aria-label="Previous slide"
+          onClick={prevSlide}
+          className="hero-arrow absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center text-white"
+        >
+          <span className="material-symbols-outlined text-lg">chevron_left</span>
+        </button>
+        <button
+          aria-label="Next slide"
+          onClick={nextSlide}
+          className="hero-arrow absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/15 hover:bg-white/30 backdrop-blur-sm flex items-center justify-center text-white"
+        >
+          <span className="material-symbols-outlined text-lg">chevron_right</span>
+        </button>
+
+        {/* Dot navigation */}
+        <div className="absolute bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+          {HERO_SLIDES.map((slide, i) => (
+            <button
+              key={slide.src}
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={() => goToSlide(i)}
+              className={`hero-dot ${i === slideIndex ? 'hero-dot-active' : ''}`}
+            />
+          ))}
+        </div>
+
+        {/* Bottom sweeping curve, matching the cream page background */}
+        <div className="absolute -bottom-1 -left-1 -right-1 h-16 sm:h-20 lg:h-28 pointer-events-none z-10">
+          <svg
+            className="w-full h-full fill-[#fbf9f6]"
+            viewBox="0 0 1000 120"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,120 L0,55 C180,125 420,5 650,67 C820,112 930,39 1000,73 L1000,120 Z" />
+          </svg>
+        </div>
+
+        {/* Content, layered above the background */}
+        <div className="relative z-20 w-full max-w-[1440px] mx-auto px-5 md:px-12 pt-20 pb-16 sm:pb-20">
+          <div className="w-full lg:w-[52%] xl:w-[46%] flex flex-col items-start text-left lg:pl-6 xl:pl-10">
             {/* Coral Line-Art Palm Tree Icon */}
             <div className="mb-3 text-[#f06c52]">
               <svg
@@ -100,9 +152,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* Headline */}
             <h1 className="font-headline mb-4 leading-[1.02] tracking-[-0.04em]">
-              <FoldText text="Tropical Soul." splitBy="char" hinge="top" trigger="mount" duration={0.65} stagger={0.045} ease="power3.out" perspective={700} creaseShading={0.55} fontSize="clamp(48px, 5vw, 66px)" fontWeight={700} color="#004449" />
+              <FoldText text="Tropical Soul." splitBy="char" hinge="top" trigger="mount" duration={0.65} stagger={0.045} ease="power3.out" perspective={700} creaseShading={0.55} fontSize="clamp(48px, 5vw, 66px)" fontWeight={700} color="#fbf9f6" />
               <br />
-              <FoldText text="Beautifully Styled." splitBy="char" hinge="top" trigger="mount" duration={0.65} stagger={0.045} ease="power3.out" perspective={700} creaseShading={0.55} fontSize="clamp(48px, 5vw, 66px)" fontWeight={400} color="#004449" className="italic" />
+              <FoldText text="Beautifully Styled." splitBy="char" hinge="top" trigger="mount" duration={0.65} stagger={0.045} ease="power3.out" perspective={700} creaseShading={0.55} fontSize="clamp(48px, 5vw, 66px)" fontWeight={400} color="#fbf9f6" className="italic" />
             </h1>
 
             {/* Subtext */}
@@ -113,92 +165,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               direction="top"
               startDelay={1.55}
               onAnimationComplete={() => undefined}
-              className="text-[15px] sm:text-base text-[#3f4849] mb-7 max-w-[310px] leading-[1.75] font-body font-medium"
+              className="text-[15px] sm:text-base text-white/85 mb-1 max-w-[340px] leading-[1.75] font-body font-medium"
             />
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <button
-                onClick={onOpenBooking}
-                className="inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-[#f06c52] hover:bg-[#e05b41] text-white text-[11px] font-bold uppercase tracking-[0.13em] transition-all shadow-lg shadow-[#f06c52]/25 transform hover:-translate-y-0.5 group"
-              >
-                <span className="material-symbols-outlined mr-2 text-base">event_available</span>
-                <span>BOOK YOUR STAY</span>
-              </button>
-              <button
-                onClick={onExploreVillas}
-                className="inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-transparent border border-[#004449]/25 hover:border-[#004449] text-[#004449] text-[11px] font-bold uppercase tracking-[0.13em] transition-all transform hover:-translate-y-0.5 group"
-              >
-                <span>EXPLORE OUR SERVICES</span>
-                <span className="material-symbols-outlined ml-3 text-base group-hover:translate-x-1 transition-transform">
-                  arrow_forward
-                </span>
-              </button>
-            </div>
           </div>
-
-          {/* Full-bleed editorial slideshow, shaped by the same sweeping white wave as the reference. */}
-          <div className="w-full lg:absolute lg:inset-y-0 lg:right-[-2.9rem] lg:w-[63%] relative mt-2 lg:mt-0">
-            <div
-              className="hero-slideshow relative w-full aspect-[4/3] lg:h-full lg:aspect-auto overflow-hidden rounded-[34px] lg:rounded-none shadow-xl bg-[#e8e3dc]"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              {HERO_SLIDES.map((slide, i) => (
-                <img
-                  key={slide.src}
-                  src={slide.src}
-                  alt={slide.alt}
-                  className={`hero-slide absolute inset-0 w-full h-full object-cover object-[55%_58%] ${
-                    i === slideIndex ? `opacity-100 z-[1] hero-slide-active ${i % 2 === 1 ? 'hero-kenburns-alt' : ''}` : 'opacity-0 z-0'
-                  }`}
-                />
-              ))}
-
-              <div className="absolute inset-0 bg-gradient-to-r from-[#fbf9f6]/35 via-transparent to-transparent pointer-events-none z-[2]" />
-
-              {/* Prev / Next arrows */}
-              <button
-                aria-label="Previous slide"
-                onClick={prevSlide}
-                className="hero-arrow absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-[#004449]/45 hover:bg-[#004449]/70 backdrop-blur-sm flex items-center justify-center text-white"
-              >
-                <span className="material-symbols-outlined text-lg">chevron_left</span>
-              </button>
-              <button
-                aria-label="Next slide"
-                onClick={nextSlide}
-                className="hero-arrow absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-[#004449]/45 hover:bg-[#004449]/70 backdrop-blur-sm flex items-center justify-center text-white"
-              >
-                <span className="material-symbols-outlined text-lg">chevron_right</span>
-              </button>
-
-              {/* Dot navigation */}
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-                {HERO_SLIDES.map((slide, i) => (
-                  <button
-                    key={slide.src}
-                    aria-label={`Go to slide ${i + 1}`}
-                    onClick={() => goToSlide(i)}
-                    className={`hero-dot ${i === slideIndex ? 'hero-dot-active' : ''}`}
-                  />
-                ))}
-              </div>
-
-              <div className="absolute -bottom-1 -left-1 -right-1 h-24 lg:h-32 pointer-events-none z-10">
-                <svg
-                  className="w-full h-full fill-[#fbf9f6]"
-                  viewBox="0 0 1000 120"
-                  preserveAspectRatio="none"
-                >
-                  <path d="M0,120 L0,55 C180,125 420,5 650,67 C820,112 930,39 1000,73 L1000,120 Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
         </div>
       </section>
 
