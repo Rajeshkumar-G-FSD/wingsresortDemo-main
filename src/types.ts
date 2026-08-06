@@ -55,6 +55,18 @@ export interface JournalPost {
   content: string;
 }
 
+export interface ServiceOffering {
+  id: string;
+  icon: 'vase' | 'armchair' | 'palm' | 'shell';
+  title: string;
+  shortTitle: [string, string];
+  tagline: string;
+  heroImage: string;
+  gallery: string[];
+  overview: string;
+  highlights: string[];
+}
+
 export interface ResortPin {
   id: string;
   name: string;

@@ -16,11 +16,14 @@ import { PropertyDetails } from './components/PropertyDetails';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { WhatsAppChatWidget } from './components/WhatsAppChatWidget';
+import { ServiceDetailPage } from './components/ServiceDetailPage';
 import { Villa, Experience, JournalPost } from './types';
+import { SERVICES } from './data/resortData';
 
 export function App() {
   const [activeSection, setActiveSection] = useState<string>('hero');
   const [selectedVilla, setSelectedVilla] = useState<Villa | null>(null);
+  const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [selectedJournalPost, setSelectedJournalPost] = useState<JournalPost | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
@@ -49,10 +52,32 @@ export function App() {
 
   const handleNavigate = (sectionId: string) => {
     setActiveSection(sectionId);
+    if (activeServiceId) {
+      setActiveServiceId(null);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+      return;
+    }
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleSelectService = (serviceId: string) => {
+    setActiveServiceId(serviceId);
+  };
+
+  const handleBackFromService = () => {
+    setActiveServiceId(null);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
   };
 
   const handleOpenConsultation = () => {
@@ -83,44 +108,60 @@ export function App() {
 
       {/* Main Content */}
       <main>
-        {/* Hero Section with Integrated Services Cards */}
-        <HeroSection />
+        {activeServiceId ? (
+          <ServiceDetailPage
+            service={SERVICES.find((s) => s.id === activeServiceId) ?? SERVICES[0]}
+            relatedServices={SERVICES.filter((s) => s.id !== activeServiceId)}
+            onBack={handleBackFromService}
+            onSelectService={handleSelectService}
+            onOpenBooking={() => {
+              setBookingPreselectVilla(null);
+              setBookingPreset(null);
+              setIsBookingOpen(true);
+            }}
+          />
+        ) : (
+          <>
+            {/* Hero Section with Integrated Services Cards */}
+            <HeroSection onSelectService={handleSelectService} />
 
-        {/* Featured Villas & Spaces (Teal Dark Section) */}
-        <FeaturedVillas
-          onSelectVilla={(v) => setSelectedVilla(v)}
-          onBookVillaDirect={handleOpenBookingWithVilla}
-          onCheckAvailability={handleCheckAvailability}
-          openCheckInTrigger={openCheckInTrigger}
-        />
+            {/* Featured Villas & Spaces (Teal Dark Section) */}
+            <FeaturedVillas
+              onSelectVilla={(v) => setSelectedVilla(v)}
+              onBookVillaDirect={handleOpenBookingWithVilla}
+              onCheckAvailability={handleCheckAvailability}
+              openCheckInTrigger={openCheckInTrigger}
+            />
 
-        {/* Our Story / Founders */}
-        <OurStory />
+            {/* Our Story / Founders */}
+            <OurStory />
 
-        <PropertyDetails />
+            <PropertyDetails />
 
-        {/* Resort Map */}
-        <ResortMapSection />
+            {/* Resort Map */}
+            <ResortMapSection />
 
-        {/* Why Clients Choose & Process */}
-        <AmenitiesSection />
+            {/* Why Clients Choose & Process */}
+            <AmenitiesSection />
 
-        {/* Design Journal */}
-        <JournalSection onSelectPost={(post) => setSelectedJournalPost(post)} />
+            {/* Design Journal */}
+            <JournalSection onSelectPost={(post) => setSelectedJournalPost(post)} />
 
-        <FaqSection />
+            <FaqSection />
 
-        {/* Testimonials Quote Slider */}
-        <TestimonialsSection />
+            {/* Testimonials Quote Slider */}
+            <TestimonialsSection />
 
-        {/* Coral Banner CTA */}
-        <ConsultationCTA
-          onOpenBooking={() => {
-            setBookingPreselectVilla(null);
-            setBookingPreset(null);
-            setIsBookingOpen(true);
-          }}
-        />
+            {/* Coral Banner CTA */}
+            <ConsultationCTA
+              onOpenBooking={() => {
+                setBookingPreselectVilla(null);
+                setBookingPreset(null);
+                setIsBookingOpen(true);
+              }}
+            />
+          </>
+        )}
       </main>
 
       <Footer

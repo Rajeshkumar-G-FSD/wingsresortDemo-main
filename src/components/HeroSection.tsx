@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import FoldText from './FoldText';
 import BlurText from './BlurText';
+import { ServiceIcon } from './ServiceIcon';
+import { SERVICES } from '../data/resortData';
 
 const HERO_SLIDES = [
   { src: '/images/wings_resort_mainbuilding.png', alt: 'Wings Resort main building' },
@@ -22,7 +24,11 @@ const ARCH_SLIDES = [
 
 const SLIDE_INTERVAL = 3000;
 
-export const HeroSection: React.FC = () => {
+interface HeroSectionProps {
+  onSelectService: (serviceId: string) => void;
+}
+
+export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => {
   const servicesRef = useRef<HTMLDivElement>(null);
   const [slideIndex, setSlideIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -144,26 +150,6 @@ export const HeroSection: React.FC = () => {
         {/* Content, layered above the background */}
         <div className="relative z-20 w-full max-w-[1440px] mx-auto px-5 md:px-12 pt-20 pb-16 sm:pb-20">
           <div className="w-full lg:w-[52%] xl:w-[46%] flex flex-col items-start text-left lg:pl-6 xl:pl-10">
-            {/* Coral Line-Art Palm Tree Icon */}
-            <div className="mb-3 text-[#f06c52]">
-              <svg
-                className="w-11 h-11 stroke-current fill-none"
-                viewBox="0 0 32 32"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M16 11c0-4-3.5-7.5-8-7.5S0 7 0 11c4 0 8 3.5 8 7.5" />
-                <path d="M16 11c0-4 3.5-7.5 8-7.5s8 3.5 8 7.5c-4 0-8 3.5-8 7.5" />
-                <path d="M16 18a7 7 0 0 0-7-7" />
-                <path d="M16 18a7 7 0 0 1 7-7" />
-                <path d="M16 11c0-3.5 2-6 5-7.5" />
-                <path d="M16 11c0-3.5-2-6-5-7.5" />
-                <path d="M16 30c0-6 1-13 0-19" />
-                <path d="M14.5 24c1.5 0.5 3 0.5 4.5 0" />
-              </svg>
-            </div>
-
             {/* Headline */}
             <h1 className="font-headline mb-4 leading-[1.02] tracking-[-0.04em]">
               <FoldText text="Tropical Soul." splitBy="char" hinge="top" trigger="mount" duration={0.65} stagger={0.045} ease="power3.out" perspective={700} creaseShading={0.55} fontSize="clamp(48px, 5vw, 66px)" fontWeight={700} color="#fbf9f6" />
@@ -223,104 +209,36 @@ export const HeroSection: React.FC = () => {
 
           {/* Grid Layout: 4 Service Cards + Overlapping Arch Portal on Desktop */}
           <div ref={servicesRef} className="services-reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4 lg:pr-60 xl:pr-72">
-            
-            {/* Card 1: Full Service Interior Design */}
-            <div className="bg-[#fbf9f6] rounded-xl p-6 min-h-[258px] flex flex-col items-center text-center border border-[#e8e3dc] shadow-sm hover:shadow-md transition-all group">
-              {/* Icon: Vase with monstera plant */}
-              <div className="w-12 h-12 mb-3 text-[#004449] flex items-center justify-center">
-                <svg className="w-10 h-10 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="1.5">
-                  <path d="M12 3v6m0 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
-                  <path d="M7 8c2.5 0 3-3 5-3s2.5 3 5 3" />
-                  <path d="M8 12h8l-1 8H9l-1-8z" />
-                  <path d="M10 20h4" />
-                </svg>
-              </div>
-              <h3 className="font-sans font-bold text-xs uppercase tracking-[0.14em] text-[#004449] mb-3 leading-snug">
-                FULL SERVICE<br />INTERIOR DESIGN
-              </h3>
-              <p className="text-[11px] text-[#3f4849] mb-5 flex-grow leading-relaxed font-body">
-                From concept to completion, we handle every detail to transform your space.
-              </p>
-              <button className="text-[11px] font-bold uppercase tracking-wider text-[#004449] group-hover:text-[#f06c52] transition-colors inline-flex items-center gap-1.5 mt-auto">
-                <span>LEARN MORE</span>
-                <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
-                  arrow_forward
-                </span>
-              </button>
-            </div>
 
-            {/* Card 2: Room Refresh & Styling */}
-            <div className="bg-[#fbf9f6] rounded-xl p-6 min-h-[258px] flex flex-col items-center text-center border border-[#e8e3dc] shadow-sm hover:shadow-md transition-all group">
-              {/* Icon: Armchair */}
-              <div className="w-12 h-12 mb-3 text-[#004449] flex items-center justify-center">
-                <svg className="w-10 h-10 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="1.5">
-                  <path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3" />
-                  <path d="M3 11a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4z" />
-                  <path d="M6 17v3M18 17v3" />
-                </svg>
+            {SERVICES.map((service) => (
+              <div
+                key={service.id}
+                onClick={() => onSelectService(service.id)}
+                className="bg-[#fbf9f6] rounded-xl p-6 min-h-[258px] flex flex-col items-center text-center border border-[#e8e3dc] shadow-sm hover:shadow-md transition-all group cursor-pointer"
+              >
+                <div className="w-12 h-12 mb-3 text-[#004449] flex items-center justify-center">
+                  <ServiceIcon icon={service.icon} className="w-10 h-10" />
+                </div>
+                <h3 className="font-sans font-bold text-xs uppercase tracking-[0.14em] text-[#004449] mb-3 leading-snug">
+                  {service.shortTitle[0]}<br />{service.shortTitle[1]}
+                </h3>
+                <p className="text-[11px] text-[#3f4849] mb-5 flex-grow leading-relaxed font-body">
+                  {service.tagline}
+                </p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectService(service.id);
+                  }}
+                  className="text-[11px] font-bold uppercase tracking-wider text-[#004449] group-hover:text-[#f06c52] transition-colors inline-flex items-center gap-1.5 mt-auto"
+                >
+                  <span>LEARN MORE</span>
+                  <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
+                </button>
               </div>
-              <h3 className="font-sans font-bold text-xs uppercase tracking-[0.14em] text-[#004449] mb-3 leading-snug">
-                ROOM REFRESH<br />& STYLING
-              </h3>
-              <p className="text-[11px] text-[#3f4849] mb-5 flex-grow leading-relaxed font-body">
-                Elevate your space with curated pieces, color, and coastal layers.
-              </p>
-              <button className="text-[11px] font-bold uppercase tracking-wider text-[#004449] group-hover:text-[#f06c52] transition-colors inline-flex items-center gap-1.5 mt-auto">
-                <span>LEARN MORE</span>
-                <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
-                  arrow_forward
-                </span>
-              </button>
-            </div>
-
-            {/* Card 3: Vacation Home Design */}
-            <div className="bg-[#fbf9f6] rounded-xl p-6 min-h-[258px] flex flex-col items-center text-center border border-[#e8e3dc] shadow-sm hover:shadow-md transition-all group">
-              {/* Icon: Palm Tree */}
-              <div className="w-12 h-12 mb-3 text-[#004449] flex items-center justify-center">
-                <svg className="w-10 h-10 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="1.5">
-                  <path d="M13 8c0-2.76-2.24-5-5-5S3 5.24 3 8c2.76 0 5 2.24 5 5" />
-                  <path d="M13 8c0-2.76 2.24-5 5-5s5 2.24 5 5c-2.76 0-5 2.24-5 5" />
-                  <path d="M12 13a5 5 0 0 0-5-5" />
-                  <path d="M12 13a5 5 0 0 1 5-5" />
-                  <path d="M12 21V8" />
-                </svg>
-              </div>
-              <h3 className="font-sans font-bold text-xs uppercase tracking-[0.14em] text-[#004449] mb-3 leading-snug">
-                VACATION HOME<br />DESIGN
-              </h3>
-              <p className="text-[11px] text-[#3f4849] mb-5 flex-grow leading-relaxed font-body">
-                We design effortless, durable, and beautiful spaces made for getaway living.
-              </p>
-              <button className="text-[11px] font-bold uppercase tracking-wider text-[#004449] group-hover:text-[#f06c52] transition-colors inline-flex items-center gap-1.5 mt-auto">
-                <span>LEARN MORE</span>
-                <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
-                  arrow_forward
-                </span>
-              </button>
-            </div>
-
-            {/* Card 4: Custom Furniture & Decor */}
-            <div className="bg-[#fbf9f6] rounded-xl p-6 min-h-[258px] flex flex-col items-center text-center border border-[#e8e3dc] shadow-sm hover:shadow-md transition-all group">
-              {/* Icon: Seashell */}
-              <div className="w-12 h-12 mb-3 text-[#004449] flex items-center justify-center">
-                <svg className="w-10 h-10 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="1.5">
-                  <path d="M12 21a9 9 0 0 0 9-9c0-4.97-4.03-9-9-9s-9 4.03-9 9a9 9 0 0 0 9 9z" />
-                  <path d="M12 3v18M7.5 4.5c3 4.5 3 10.5 0 15M16.5 4.5c-3 4.5-3 10.5 0 15" />
-                </svg>
-              </div>
-              <h3 className="font-sans font-bold text-xs uppercase tracking-[0.14em] text-[#004449] mb-3 leading-snug">
-                CUSTOM FURNITURE<br />& DECOR
-              </h3>
-              <p className="text-[11px] text-[#3f4849] mb-5 flex-grow leading-relaxed font-body">
-                Bespoke pieces and curated finishing touches to bring vision to life.
-              </p>
-              <button className="text-[11px] font-bold uppercase tracking-wider text-[#004449] group-hover:text-[#f06c52] transition-colors inline-flex items-center gap-1.5 mt-auto">
-                <span>LEARN MORE</span>
-                <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
-                  arrow_forward
-                </span>
-              </button>
-            </div>
+            ))}
 
           </div>
 

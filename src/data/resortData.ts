@@ -1,4 +1,87 @@
-import { Villa, Experience, Testimonial, JournalPost, ResortPin } from '../types';
+import { Villa, Experience, Testimonial, JournalPost, ResortPin, ServiceOffering } from '../types';
+
+export const SERVICES: ServiceOffering[] = [
+  {
+    id: 'full-service-interior-design',
+    icon: 'vase',
+    title: 'Full Service Interior Design',
+    shortTitle: ['FULL SERVICE', 'INTERIOR DESIGN'],
+    tagline: 'From concept to completion, we handle every detail to transform your space.',
+    heroImage: '/images/wings_resort_mainbuilding.png',
+    gallery: [
+      '/images/wings_resort_a_type_bedroom.png',
+      '/images/wings_resort_threebedroom.png',
+      '/images/wings_deluex_three_room.jpg.png'
+    ],
+    overview: 'Our full service interior design studio partners with you from the very first sketch through the final styled reveal. At Wings Resort, we’ve applied this same process across every villa and residence on property — pairing warm teak wood, breezy linens, and considered floor plans that turn a house into a sanctuary.',
+    highlights: [
+      'Personalized design concept & mood boards',
+      'Space planning tailored to tropical living',
+      'Sourcing of custom furnishings & finishes',
+      'On-site styling & final reveal walkthrough'
+    ]
+  },
+  {
+    id: 'room-refresh-styling',
+    icon: 'armchair',
+    title: 'Room Refresh & Styling',
+    shortTitle: ['ROOM REFRESH', '& STYLING'],
+    tagline: 'Elevate your space with curated pieces, color, and coastal layers.',
+    heroImage: '/images/wings_resort_couples_bed_room.png',
+    gallery: [
+      '/images/wings_resort_family_bed_room.png',
+      '/images/wings_resort_a_type_bedroom.png',
+      '/images/wings_resort_wood_house_rooms_fontview.png'
+    ],
+    overview: 'Sometimes a room just needs a refresh — new textiles, a curated palette, and a few statement pieces. Our styling team layers in coastal textures and warm tones drawn straight from the Wings Resort suites, giving any room that same relaxed, resort-inspired feeling.',
+    highlights: [
+      'Curated soft furnishings & textile layering',
+      'Seasonal color & accent refresh',
+      'Art, lighting & decorative styling',
+      'Quick-turnaround room makeovers'
+    ]
+  },
+  {
+    id: 'vacation-home-design',
+    icon: 'palm',
+    title: 'Vacation Home Design',
+    shortTitle: ['VACATION HOME', 'DESIGN'],
+    tagline: 'We design effortless, durable, and beautiful spaces made for getaway living.',
+    heroImage: '/images/wings_resort_a_type_house.jpg',
+    gallery: [
+      '/images/wings_resort_a_house_fontview.png',
+      '/images/wings_resort_five_bh_house.jpg',
+      '/images/wings_resort_wooden_house.jpg'
+    ],
+    overview: 'Vacation homes need to work as hard as they relax you — built for salt air, sandy feet, and effortless entertaining. Modeled after our own A-Type and five-bedroom residences at Wings Resort, we design full getaway homes with durable natural materials that age beautifully in the tropics.',
+    highlights: [
+      'Architectural & floor plan consultation',
+      'Weather-durable, low-maintenance materials',
+      'Indoor-outdoor living layouts',
+      'Turnkey furnishing for rental-ready homes'
+    ]
+  },
+  {
+    id: 'custom-furniture-decor',
+    icon: 'shell',
+    title: 'Custom Furniture & Decor',
+    shortTitle: ['CUSTOM FURNITURE', '& DECOR'],
+    tagline: 'Bespoke pieces and curated finishing touches to bring vision to life.',
+    heroImage: '/images/wings_resort_a_type_building.png',
+    gallery: [
+      '/images/wings_resort_rooms_frontview.png',
+      '/images/wings_resort_5bh_rooms_frontview.png',
+      '/images/wings_resort_threebedroom.png'
+    ],
+    overview: 'Every Wings Resort residence features custom-built furniture crafted to fit its exact space and story. We bring that same bespoke approach to your home — commissioning handcrafted teak, rattan, and stone pieces alongside curated decor finds that you won’t see anywhere else.',
+    highlights: [
+      'Custom-built furniture commissions',
+      'Handpicked decor & art sourcing',
+      'Natural material palette: teak, rattan, stone',
+      'One-of-a-kind finishing touches'
+    ]
+  }
+];
 
 export const VILLAS: Villa[] = [
   {
