@@ -14,6 +14,12 @@ const HERO_SLIDES = [
   { src: '/images/wings_resort_parking.png', alt: 'Resort parking' },
 ];
 
+const ARCH_SLIDES = [
+  { src: '/images/wings_resort_a_type_building.png', alt: 'Wings Resort A-type building' },
+  { src: '/images/wings_resort_a_house_fontview.png', alt: 'A-type house, front view' },
+  { src: '/images/wings_resort_wooden_house.jpg', alt: 'Wooden house' },
+];
+
 const SLIDE_INTERVAL = 3000;
 
 export const HeroSection: React.FC = () => {
@@ -21,6 +27,7 @@ export const HeroSection: React.FC = () => {
   const [slideIndex, setSlideIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const touchStartX = useRef<number | null>(null);
+  const [archIndex, setArchIndex] = useState(0);
 
   useEffect(() => {
     const element = servicesRef.current;
@@ -45,6 +52,13 @@ export const HeroSection: React.FC = () => {
     }, SLIDE_INTERVAL);
     return () => window.clearInterval(id);
   }, [isHovered]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setArchIndex((i) => (i + 1) % ARCH_SLIDES.length);
+    }, SLIDE_INTERVAL);
+    return () => window.clearInterval(id);
+  }, []);
 
   const goToSlide = (i: number) => setSlideIndex((i + HERO_SLIDES.length) % HERO_SLIDES.length);
   const nextSlide = () => goToSlide(slideIndex + 1);
@@ -183,6 +197,30 @@ export const HeroSection: React.FC = () => {
             <span className="text-[#f06c52] text-base">🌴</span>
           </div>
 
+          {/* Arched slideshow badge — mobile-only, sits in the normal flow above the service cards */}
+          <div className="mb-10 flex justify-center lg:hidden">
+            <div className="relative w-40 sm:w-48 aspect-[1/1.3]">
+              <div className="relative w-full h-full p-2 rounded-t-[110px] rounded-b-2xl bg-[#004449] shadow-2xl border-2 border-[#004449]">
+                <div className="relative w-full h-full rounded-t-[102px] rounded-b-xl overflow-hidden">
+                  {ARCH_SLIDES.map((slide, i) => (
+                    <img
+                      key={slide.src}
+                      src={slide.src}
+                      alt={slide.alt}
+                      className={`hero-slide absolute inset-0 w-full h-full object-cover ${
+                        i === archIndex ? `opacity-100 z-[1] hero-slide-active ${i % 2 === 1 ? 'hero-kenburns-alt' : ''}` : 'opacity-0 z-0'
+                      }`}
+                    />
+                  ))}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#004449]/25 via-transparent to-transparent pointer-events-none" />
+                </div>
+              </div>
+              <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#f06c52] text-white text-[9px] font-bold uppercase tracking-[0.18em] px-3 py-1.5 rounded-full shadow-md">
+                Our Signature Stays
+              </span>
+            </div>
+          </div>
+
           {/* Grid Layout: 4 Service Cards + Overlapping Arch Portal on Desktop */}
           <div ref={servicesRef} className="services-reveal grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-4 lg:pr-60 xl:pr-72">
             
@@ -290,12 +328,17 @@ export const HeroSection: React.FC = () => {
           <div className="hidden lg:block absolute -top-24 right-0 w-[280px] xl:w-[330px] aspect-[1/1.5] z-30 pointer-events-none">
             {/* Arched Image Container with Dark Teal Outer Ring & Double Outline */}
             <div className="relative w-full h-full p-2.5 rounded-t-[180px] rounded-b-3xl bg-[#004449] shadow-2xl border-2 border-[#004449]">
-              <div className="relative w-full h-full rounded-t-[170px] rounded-b-2xl overflow-hidden pointer-events-auto group">
-                <img
-                  src="/images/wings_resort_a_type_building.png"
-                  alt="Wings Resort A-type building"
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                />
+              <div className="relative w-full h-full rounded-t-[170px] rounded-b-2xl overflow-hidden pointer-events-auto">
+                {ARCH_SLIDES.map((slide, i) => (
+                  <img
+                    key={slide.src}
+                    src={slide.src}
+                    alt={slide.alt}
+                    className={`hero-slide absolute inset-0 w-full h-full object-cover ${
+                      i === archIndex ? `opacity-100 z-[1] hero-slide-active ${i % 2 === 1 ? 'hero-kenburns-alt' : ''}` : 'opacity-0 z-0'
+                    }`}
+                  />
+                ))}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#004449]/20 via-transparent to-transparent" />
               </div>
             </div>
