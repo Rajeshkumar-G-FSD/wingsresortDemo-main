@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import FoldText from './FoldText';
 import BlurText from './BlurText';
 
@@ -8,10 +8,28 @@ interface HeroSectionProps {
   onSearchQuick?: (checkIn: string, checkOut: string, guests: number, category: string) => void;
 }
 
+const HERO_SLIDES = [
+  { src: '/images/wings_resort_mainbuilding.png', alt: 'Wings Resort main building' },
+  { src: '/images/wings_resort_a_house_fontview.png', alt: 'A-type house, front view' },
+  { src: '/images/wings_resort_five_bh_house.jpg', alt: 'Five bedroom house' },
+  { src: '/images/wings_resort_wooden_house.jpg', alt: 'Wooden house' },
+  { src: '/images/wings_resort_rooms_frontview.png', alt: 'Guest rooms, front view' },
+  { src: '/images/wings_resort_wood_house_rooms_fontview.png', alt: 'Wood house rooms, front view' },
+  { src: '/images/wings_resort_5bh_rooms_frontview.png', alt: '5BH rooms, front view' },
+  { src: '/images/wings_resort_a_type_house.jpg', alt: 'A-type house' },
+  { src: '/images/wings_resort_parking.png', alt: 'Resort parking' },
+];
+
+const SLIDE_INTERVAL = 5000;
+
 export const HeroSection: React.FC<HeroSectionProps> = ({
-  onExploreVillas
+  onExploreVillas,
+  onOpenBooking
 }) => {
   const servicesRef = useRef<HTMLDivElement>(null);
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     const element = servicesRef.current;
@@ -28,6 +46,30 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       observer.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (isHovered) return;
+    const id = window.setInterval(() => {
+      setSlideIndex((i) => (i + 1) % HERO_SLIDES.length);
+    }, SLIDE_INTERVAL);
+    return () => window.clearInterval(id);
+  }, [isHovered]);
+
+  const goToSlide = (i: number) => setSlideIndex((i + HERO_SLIDES.length) % HERO_SLIDES.length);
+  const nextSlide = () => goToSlide(slideIndex + 1);
+  const prevSlide = () => goToSlide(slideIndex - 1);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) > 40) {
+      delta < 0 ? nextSlide() : prevSlide();
+    }
+    touchStartX.current = null;
+  };
 
   return (
     <div className="relative bg-[#fbf9f6] text-[#1b1c1a] overflow-hidden">
@@ -74,11 +116,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               className="text-[15px] sm:text-base text-[#3f4849] mb-7 max-w-[310px] leading-[1.75] font-body font-medium"
             />
 
-            {/* CTA Button */}
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button
+                onClick={onOpenBooking}
+                className="inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-[#f06c52] hover:bg-[#e05b41] text-white text-[11px] font-bold uppercase tracking-[0.13em] transition-all shadow-lg shadow-[#f06c52]/25 transform hover:-translate-y-0.5 group"
+              >
+                <span className="material-symbols-outlined mr-2 text-base">event_available</span>
+                <span>BOOK YOUR STAY</span>
+              </button>
               <button
                 onClick={onExploreVillas}
-                className="inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-[#f06c52] hover:bg-[#e05b41] text-white text-[11px] font-bold uppercase tracking-[0.13em] transition-all shadow-lg shadow-[#f06c52]/25 transform hover:-translate-y-0.5 group"
+                className="inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-transparent border border-[#004449]/25 hover:border-[#004449] text-[#004449] text-[11px] font-bold uppercase tracking-[0.13em] transition-all transform hover:-translate-y-0.5 group"
               >
                 <span>EXPLORE OUR SERVICES</span>
                 <span className="material-symbols-outlined ml-3 text-base group-hover:translate-x-1 transition-transform">
@@ -88,15 +137,65 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           </div>
 
-          {/* Full-bleed editorial image, shaped by the same sweeping white wave as the reference. */}
+          {/* Full-bleed editorial slideshow, shaped by the same sweeping white wave as the reference. */}
           <div className="w-full lg:absolute lg:inset-y-0 lg:right-[-2.9rem] lg:w-[63%] relative mt-2 lg:mt-0">
-            <div className="relative w-full aspect-[4/3] lg:h-full lg:aspect-auto overflow-hidden rounded-[34px] lg:rounded-none shadow-xl bg-[#e8e3dc]">
-              <img
-                src="/images/wings_resort_mainbuilding.png"
-                alt="Wings Resort main building"
-                className="w-full h-full object-cover object-[55%_58%] transform hover:scale-105 transition-transform duration-1000"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#fbf9f6]/35 via-transparent to-transparent pointer-events-none" />
+            <div
+              className="hero-slideshow relative w-full aspect-[4/3] lg:h-full lg:aspect-auto overflow-hidden rounded-[34px] lg:rounded-none shadow-xl bg-[#e8e3dc]"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              {HERO_SLIDES.map((slide, i) => (
+                <img
+                  key={slide.src}
+                  src={slide.src}
+                  alt={slide.alt}
+                  className={`hero-slide absolute inset-0 w-full h-full object-cover object-[55%_58%] ${
+                    i === slideIndex ? `opacity-100 z-[1] hero-slide-active ${i % 2 === 1 ? 'hero-kenburns-alt' : ''}` : 'opacity-0 z-0'
+                  }`}
+                />
+              ))}
+
+              <div className="absolute inset-0 bg-gradient-to-r from-[#fbf9f6]/35 via-transparent to-transparent pointer-events-none z-[2]" />
+
+              {/* Prev / Next arrows */}
+              <button
+                aria-label="Previous slide"
+                onClick={prevSlide}
+                className="hero-arrow absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-[#004449]/45 hover:bg-[#004449]/70 backdrop-blur-sm flex items-center justify-center text-white"
+              >
+                <span className="material-symbols-outlined text-lg">chevron_left</span>
+              </button>
+              <button
+                aria-label="Next slide"
+                onClick={nextSlide}
+                className="hero-arrow absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-[#004449]/45 hover:bg-[#004449]/70 backdrop-blur-sm flex items-center justify-center text-white"
+              >
+                <span className="material-symbols-outlined text-lg">chevron_right</span>
+              </button>
+
+              {/* Dot navigation */}
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+                {HERO_SLIDES.map((slide, i) => (
+                  <button
+                    key={slide.src}
+                    aria-label={`Go to slide ${i + 1}`}
+                    onClick={() => goToSlide(i)}
+                    className={`hero-dot ${i === slideIndex ? 'hero-dot-active' : ''}`}
+                  />
+                ))}
+              </div>
+
+              {/* Book Now badge */}
+              <button
+                onClick={onOpenBooking}
+                className="absolute top-5 right-5 z-20 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#fbf9f6]/90 hover:bg-[#fbf9f6] backdrop-blur-sm text-[#004449] text-[10px] font-bold uppercase tracking-[0.12em] shadow-lg transition-all transform hover:-translate-y-0.5"
+              >
+                <span className="material-symbols-outlined text-sm">bolt</span>
+                <span>Book Now</span>
+              </button>
+
               <div className="absolute -bottom-1 -left-1 -right-1 h-24 lg:h-32 pointer-events-none z-10">
                 <svg
                   className="w-full h-full fill-[#fbf9f6]"

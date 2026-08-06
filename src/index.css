@@ -172,10 +172,24 @@ html { scroll-behavior: smooth; }
 @keyframes loader-line { from { transform: translateX(-110%); } to { transform: translateX(320%); } }
 @keyframes loader-breathe { to { transform: scale(1.18) rotate(45deg); } }
 @keyframes loader-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Hero slideshow */
+.hero-slide { transition: opacity 1400ms cubic-bezier(.4, 0, .2, 1); }
+.hero-slide-active { animation: hero-kenburns 6500ms cubic-bezier(.25, .1, .25, 1) forwards; }
+.hero-slide-active.hero-kenburns-alt { animation-name: hero-kenburns-alt; }
+@keyframes hero-kenburns { from { transform: scale(1.06) translate(0, 0); } to { transform: scale(1.16) translate(-1.2%, -1.5%); } }
+@keyframes hero-kenburns-alt { from { transform: scale(1.06) translate(0, 0); } to { transform: scale(1.16) translate(1.2%, 1%); } }
+.hero-dot { width: 6px; height: 6px; border-radius: 999px; background: rgba(255,255,255,.55); transition: width 420ms ease, background 420ms ease; }
+.hero-dot-active { width: 22px; background: #fbf9f6; }
+.hero-arrow { opacity: 0; transition: opacity 320ms ease, background 220ms ease, transform 220ms ease; }
+.hero-slideshow:hover .hero-arrow, .hero-slideshow:focus-within .hero-arrow { opacity: 1; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal-section, .site-loader { transition: none; }
   .loader-mark, .loader-wordmark, .loader-subtitle, .loader-line span, .loader-copy, .services-reveal > div, .properties-reveal > * { animation: none; opacity: 1; }
+  .hero-slide-active { animation: none; }
+  .hero-slide { transition: opacity 600ms ease; }
 }
 
 #footer h4, #footer p, #footer li, #footer label, #footer a, #footer button:not(.coral-gradient) { color: rgba(255, 255, 255, .82); }
