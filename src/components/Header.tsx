@@ -45,13 +45,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
           className="flex items-center gap-3 text-left group focus:outline-none"
         >
           {/* Logo Mark */}
-          <div className="h-12 w-24 overflow-hidden md:h-14 md:w-28">
-            <img
-              src="/images/wings_resort_logo.png"
-              alt="Wings Resort"
-              className="h-full w-full object-cover object-center mix-blend-multiply"
-            />
-          </div>
+          <img
+            src="/images/wings_resort_ooty_icon.png"
+            alt="Wings Resort"
+            className="h-9 md:h-10 w-auto"
+          />
+          <span className="leading-none">
+            <span className="block font-headline text-lg md:text-xl font-bold tracking-wide text-[#004449] uppercase">
+              Wings Resort
+            </span>
+            <span className="block text-[9px] font-semibold tracking-[0.24em] text-[#a93721] uppercase mt-0.5">
+              Luxury Resort Living
+            </span>
+          </span>
         </button>
 
         {/* Desktop Navigation */}

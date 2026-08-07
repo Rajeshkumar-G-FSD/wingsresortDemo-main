@@ -10,7 +10,7 @@ export const LoadingScreen: React.FC = () => {
 
   return (
     <div className={`site-loader ${leaving ? 'site-loader--leaving' : ''}`} aria-label="Loading Wings Resort">
-      <div className="loader-mark" aria-hidden="true">✦</div>
+      <img src="/images/wings_resort_ooty_icon.png" alt="" className="loader-icon" aria-hidden="true" />
       <p className="loader-wordmark">WINGS RESORT</p>
       <p className="loader-subtitle">LUXURY RESORT LIVING</p>
       <div className="loader-line"><span /></div>

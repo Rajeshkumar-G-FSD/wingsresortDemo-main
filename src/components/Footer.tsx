@@ -33,15 +33,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBooking }) => 
           {/* Brand Col */}
           <div>
             <button onClick={() => onNavigate('hero')} className="flex items-center gap-3 mb-4 text-left">
-              <span className="text-white">
-                <svg className="w-9 h-9 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M13 8c0-2.76-2.24-5-5-5S3 5.24 3 8c2.76 0 5 2.24 5 5" />
-                  <path d="M13 8c0-2.76 2.24-5 5-5s5 2.24 5 5c-2.76 0-5 2.24-5 5" />
-                  <path d="M12 13a5 5 0 0 0-5-5" />
-                  <path d="M12 13a5 5 0 0 1 5-5" />
-                  <path d="M12 21V8" />
-                </svg>
-              </span>
+              <img
+                src="/images/wings_resort_ooty_icon.png"
+                alt=""
+                className="w-11 h-auto shrink-0"
+              />
               <span>
                 <span className="font-headline text-xl font-bold tracking-tight text-white block leading-none uppercase">
                   Wings Resort
