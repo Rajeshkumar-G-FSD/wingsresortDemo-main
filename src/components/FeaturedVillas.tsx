@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { VILLAS } from '../data/resortData';
 import { Villa } from '../types';
 import { DatePickerPopover, toISO } from './DatePickerPopover';
+import SplitText from './SplitText';
 
 const addDays = (iso: string, days: number) => {
   const d = new Date(`${iso}T00:00:00`);
@@ -97,7 +98,20 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
         <div className="mb-8">
           <div className="mb-4 text-center">
             <p className="text-[10px] font-bold uppercase tracking-[.22em] text-[#8fd2d8]">Find your perfect stay</p>
-            <h2 className="mt-1 font-headline text-2xl text-white sm:text-3xl">Explore our properties</h2>
+            <SplitText
+              text="Explore our properties"
+              tag="h2"
+              splitType="words"
+              delay={40}
+              duration={0.9}
+              ease="power3.out"
+              from={{ opacity: 0, y: 30 }}
+              to={{ opacity: 1, y: 0 }}
+              threshold={0.15}
+              rootMargin="-80px"
+              textAlign="center"
+              className="mt-1 font-headline text-2xl text-white sm:text-3xl"
+            />
           </div>
           <form
             ref={formRef}

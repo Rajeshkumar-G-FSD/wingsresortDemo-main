@@ -11,6 +11,7 @@ import {
 } from '../data/roomsData';
 import { DatePickerPopover, toISO } from './DatePickerPopover';
 import { RoomBookingModal } from './RoomBookingModal';
+import BlurText from './BlurText';
 
 interface RoomsPageProps {
   initialCheckIn: string;
@@ -92,9 +93,13 @@ export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialChe
         <div className="relative z-10 mx-auto w-full max-w-[1280px] px-5 pb-16 sm:pb-20 md:px-12">
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-[#8fd2d8]">Wings Resort · Ooty</p>
           <h1 className="font-headline text-4xl font-medium text-white sm:text-5xl lg:text-6xl">Escape to Nature.<br />Stay in Comfort.</h1>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base">
-            From private villas to cozy cabins, choose the stay that fits your group — with transparent weekday, weekend, and seasonal pricing.
-          </p>
+          <BlurText
+            text="From private villas to cozy cabins, choose the stay that fits your group — with transparent weekday, weekend, and seasonal pricing."
+            animateBy="words"
+            direction="top"
+            delay={20}
+            className="mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base"
+          />
         </div>
       </section>
 

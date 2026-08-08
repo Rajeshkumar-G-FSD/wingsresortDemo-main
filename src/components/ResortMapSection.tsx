@@ -1,5 +1,7 @@
 import React from 'react';
 import { GOOGLE_MAPS_PLACE_URL, GOOGLE_MAPS_EMBED_URL } from '../data/contactInfo';
+import SplitText from './SplitText';
+import BlurText from './BlurText';
 
 export const ResortMapSection: React.FC = () => {
   return (
@@ -12,12 +14,27 @@ export const ResortMapSection: React.FC = () => {
               Find Us
             </span>
           </div>
-          <h2 className="font-headline text-3xl sm:text-4xl lg:text-5xl text-[#004449] font-medium">
-            Wings Resort 3BHK Ooty on the Map
-          </h2>
-          <p className="text-sm text-[#3f4849] mt-3 max-w-xl mx-auto">
-            Just minutes from Ooty Lake, the Main Bazaar, and the railway station. Open the map for turn-by-turn directions.
-          </p>
+          <SplitText
+            text="Wings Resort 3BHK Ooty on the Map"
+            tag="h2"
+            splitType="words"
+            delay={40}
+            duration={0.9}
+            ease="power3.out"
+            from={{ opacity: 0, y: 30 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.15}
+            rootMargin="-80px"
+            textAlign="center"
+            className="font-headline text-3xl sm:text-4xl lg:text-5xl text-[#004449] font-medium"
+          />
+          <BlurText
+            text="Just minutes from Ooty Lake, the Main Bazaar, and the railway station. Open the map for turn-by-turn directions."
+            animateBy="words"
+            direction="top"
+            delay={30}
+            className="text-sm text-[#3f4849] mt-3 max-w-xl mx-auto justify-center"
+          />
         </div>
 
         <div className="bg-[#f5f3f0] rounded-3xl p-4 sm:p-6 border border-[#e4e2df] soft-shadow">

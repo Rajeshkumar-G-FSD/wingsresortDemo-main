@@ -9,9 +9,24 @@ type BlurTextProps = {
   className?: string;
   onAnimationComplete?: () => void;
   startDelay?: number;
+  threshold?: number;
+  rootMargin?: string;
+  /** Replay the reveal every time the element scrolls back into view (default true). */
+  repeat?: boolean;
 };
 
-export default function BlurText({ text, delay = 200, animateBy = 'words', direction = 'top', className = '', onAnimationComplete, startDelay = 0 }: BlurTextProps) {
+export default function BlurText({
+  text,
+  delay = 200,
+  animateBy = 'words',
+  direction = 'top',
+  className = '',
+  onAnimationComplete,
+  startDelay = 0,
+  threshold = 0.1,
+  rootMargin = '0px',
+  repeat = true,
+}: BlurTextProps) {
   const ref = useRef<HTMLParagraphElement>(null);
   const [inView, setInView] = useState(false);
   const elements = useMemo(() => animateBy === 'words' ? text.split(' ') : Array.from(text), [animateBy, text]);
@@ -22,12 +37,14 @@ export default function BlurText({ text, delay = 200, animateBy = 'words', direc
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) {
         setInView(true);
-        observer.disconnect();
+        if (!repeat) observer.disconnect();
+      } else if (repeat) {
+        setInView(false);
       }
-    }, { threshold: .1 });
+    }, { threshold, rootMargin });
     observer.observe(ref.current);
     return () => observer.disconnect();
-  }, []);
+  }, [threshold, rootMargin, repeat]);
 
   return (
     <p ref={ref} className={`blur-text flex flex-wrap ${className}`}>
@@ -36,11 +53,11 @@ export default function BlurText({ text, delay = 200, animateBy = 'words', direc
           className="inline-block will-change-[transform,filter,opacity]"
           key={`${segment}-${index}`}
           initial={{ filter: 'blur(10px)', opacity: 0, y: initialY }}
-          animate={inView ? { filter: ['blur(10px)', 'blur(3px)', 'blur(0px)'], opacity: [0, .55, 1], y: [initialY, direction === 'top' ? 4 : -4, 0] } : undefined}
+          animate={inView ? { filter: ['blur(10px)', 'blur(3px)', 'blur(0px)'], opacity: [0, .55, 1], y: [initialY, direction === 'top' ? 4 : -4, 0] } : { filter: 'blur(10px)', opacity: 0, y: initialY }}
           transition={{ duration: .52, times: [0, .45, 1], delay: startDelay + (index * delay) / 1000, ease: 'easeOut' }}
           onAnimationComplete={index === elements.length - 1 ? onAnimationComplete : undefined}
         >
-          {segment}{animateBy === 'words' && index < elements.length - 1 ? '\u00a0' : ''}
+          {segment}{animateBy === 'words' && index < elements.length - 1 ? ' ' : ''}
         </motion.span>
       ))}
     </p>

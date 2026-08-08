@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CONTACT_INFO } from '../data/contactInfo';
+import SplitText from './SplitText';
 
 const faqs = [
   ['How many types of rooms are available at Wings Resort 3BHK Ooty?', 'Wings Resort 3BHK Ooty offers a spacious 3BHK villa along with our main building suites and A-type villas. Check each room type for detailed features, images, and the latest availability — every room is designed to make your stay unforgettable.'],
@@ -22,7 +23,20 @@ export const FaqSection: React.FC = () => {
       <div className="mx-auto max-w-[900px]">
         <div className="mb-8 text-center">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[.2em] text-[#f06c52]">Frequently asked questions</p>
-          <h2 className="font-headline text-3xl text-[#004449] sm:text-4xl">Everything you need to know.</h2>
+          <SplitText
+            text="Everything you need to know."
+            tag="h2"
+            splitType="words"
+            delay={40}
+            duration={0.9}
+            ease="power3.out"
+            from={{ opacity: 0, y: 30 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.15}
+            rootMargin="-80px"
+            textAlign="center"
+            className="font-headline text-3xl text-[#004449] sm:text-4xl"
+          />
         </div>
         <div className="border-y border-[#e8e3dc]">
           {faqs.map(([question, answer], index) => (

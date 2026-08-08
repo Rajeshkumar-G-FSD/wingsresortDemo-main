@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import FoldText from './FoldText';
+import SplitText from './SplitText';
 import BlurText from './BlurText';
 import { ServiceIcon } from './ServiceIcon';
 import { SERVICES } from '../data/resortData';
@@ -172,9 +172,35 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
           <div className="w-full lg:w-[52%] xl:w-[46%] flex flex-col items-start text-left lg:pl-6 xl:pl-10">
             {/* Headline */}
             <h1 className="font-headline mb-4 leading-[1.02] tracking-[-0.04em]">
-              <FoldText text="Tropical Soul." splitBy="char" hinge="top" trigger="mount" duration={0.65} stagger={0.045} ease="power3.out" perspective={700} creaseShading={0.55} fontSize="clamp(48px, 5vw, 66px)" fontWeight={700} color="#fbf9f6" />
+              <SplitText
+                text="Tropical Soul."
+                tag="span"
+                splitType="chars"
+                delay={30}
+                duration={0.65}
+                ease="power3.out"
+                from={{ opacity: 0, y: 40 }}
+                to={{ opacity: 1, y: 0 }}
+                threshold={0.1}
+                rootMargin="0px"
+                textAlign="left"
+                className="text-[clamp(48px,5vw,66px)] font-bold text-[#fbf9f6]"
+              />
               <br />
-              <FoldText text="Beautifully Styled." splitBy="char" hinge="top" trigger="mount" duration={0.65} stagger={0.045} ease="power3.out" perspective={700} creaseShading={0.55} fontSize="clamp(48px, 5vw, 66px)" fontWeight={400} color="#fbf9f6" className="italic" />
+              <SplitText
+                text="Beautifully Styled."
+                tag="span"
+                splitType="chars"
+                delay={30}
+                duration={0.65}
+                ease="power3.out"
+                from={{ opacity: 0, y: 40 }}
+                to={{ opacity: 1, y: 0 }}
+                threshold={0.1}
+                rootMargin="0px"
+                textAlign="left"
+                className="text-[clamp(48px,5vw,66px)] font-normal italic text-[#fbf9f6]"
+              />
             </h1>
 
             {/* Subtext */}

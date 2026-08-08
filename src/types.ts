@@ -125,6 +125,7 @@ export interface NearbyAttraction {
   walkingTime?: string;
   category: string;
   icon: string;
+  image?: string;
 }
 
 export interface BookingRecord {

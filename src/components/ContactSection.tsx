@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { CONTACT_INFO, GOOGLE_MAPS_PLACE_URL, GOOGLE_MAPS_EMBED_URL } from '../data/contactInfo';
+import SplitText from './SplitText';
+import BlurText from './BlurText';
 
 interface ContactFormState {
   name: string;
@@ -81,10 +83,27 @@ export const ContactSection: React.FC = () => {
       <div className="mx-auto max-w-[1120px]">
         <div className="mb-10 max-w-2xl">
           <p className="mb-3 text-[10px] font-bold uppercase tracking-[.22em] text-[#f06c52]">Get in touch</p>
-          <h2 className="font-headline text-3xl text-[#004449] sm:text-4xl">Contact Wings Resort</h2>
-          <p className="mt-3 text-sm leading-relaxed text-[#3f4849]">
-            Questions about your stay, availability, or getting here? Reach out directly or say hello below and we'll pick it up on WhatsApp.
-          </p>
+          <SplitText
+            text="Contact Wings Resort"
+            tag="h2"
+            splitType="words"
+            delay={40}
+            duration={0.9}
+            ease="power3.out"
+            from={{ opacity: 0, y: 30 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.15}
+            rootMargin="-80px"
+            textAlign="left"
+            className="font-headline text-3xl text-[#004449] sm:text-4xl"
+          />
+          <BlurText
+            text="Questions about your stay, availability, or getting here? Reach out directly or say hello below and we'll pick it up on WhatsApp."
+            animateBy="words"
+            direction="top"
+            delay={20}
+            className="mt-3 text-sm leading-relaxed text-[#3f4849]"
+          />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[.9fr_1.1fr]">

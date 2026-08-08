@@ -22,6 +22,30 @@ interface BookingDraft {
 
 const now = () => new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
+interface CountryOption {
+  name: string;
+  flag: string;
+  dial: string;
+}
+
+const COUNTRY_CODES: CountryOption[] = [
+  { name: 'India', flag: '🇮🇳', dial: '+91' },
+  { name: 'United States', flag: '🇺🇸', dial: '+1' },
+  { name: 'United Kingdom', flag: '🇬🇧', dial: '+44' },
+  { name: 'UAE', flag: '🇦🇪', dial: '+971' },
+  { name: 'Singapore', flag: '🇸🇬', dial: '+65' },
+  { name: 'Australia', flag: '🇦🇺', dial: '+61' },
+  { name: 'Canada', flag: '🇨🇦', dial: '+1' },
+  { name: 'Germany', flag: '🇩🇪', dial: '+49' },
+  { name: 'France', flag: '🇫🇷', dial: '+33' },
+  { name: 'Sri Lanka', flag: '🇱🇰', dial: '+94' },
+  { name: 'Nepal', flag: '🇳🇵', dial: '+977' },
+  { name: 'Bangladesh', flag: '🇧🇩', dial: '+880' },
+  { name: 'Saudi Arabia', flag: '🇸🇦', dial: '+966' },
+  { name: 'Qatar', flag: '🇶🇦', dial: '+974' },
+  { name: 'Malaysia', flag: '🇲🇾', dial: '+60' },
+];
+
 const KNOWLEDGE_BASE: { test: RegExp; reply: string }[] = [
   {
     test: /\b(hi|hello|hey|namaste)\b/i,
@@ -93,6 +117,12 @@ const toISO = (d: Date) => {
   return `${y}-${m}-${day}`;
 };
 
+const addDays = (iso: string, days: number) => {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  return toISO(d);
+};
+
 const formatDisplay = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -151,7 +181,65 @@ const MiniCalendar: React.FC<{ minDate?: string; onSelect: (iso: string) => void
   );
 };
 
-export const WhatsAppChatWidget: React.FC = () => {
+const PhoneEntry: React.FC<{ onSubmit: (fullPhone: string) => void }> = ({ onSubmit }) => {
+  const [countryCode, setCountryCode] = useState('+91');
+  const [localNumber, setLocalNumber] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = () => {
+    const digits = localNumber.replace(/[^\d]/g, '');
+    if (digits.length < 7) {
+      setError('Please enter a valid number.');
+      return;
+    }
+    setError(null);
+    onSubmit(`${countryCode} ${digits}`);
+  };
+
+  return (
+    <div className="mt-2 w-full rounded-2xl bg-white p-3 shadow-sm border border-[#e4e2df]">
+      <div className="flex items-center gap-2">
+        <select
+          value={countryCode}
+          onChange={(e) => setCountryCode(e.target.value)}
+          aria-label="Country code"
+          className="shrink-0 rounded-full border border-[#e4e2df] bg-white px-2.5 py-2.5 text-xs font-semibold text-[#111b21] focus:outline-none focus:border-[#25D366]"
+        >
+          {COUNTRY_CODES.map((c) => (
+            <option key={`${c.name}-${c.dial}`} value={c.dial}>
+              {c.flag} {c.dial}
+            </option>
+          ))}
+        </select>
+        <input
+          type="tel"
+          inputMode="numeric"
+          value={localNumber}
+          onChange={(e) => { setLocalNumber(e.target.value.replace(/[^\d]/g, '')); setError(null); }}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
+          placeholder="WhatsApp number"
+          className="min-w-0 flex-1 rounded-full border border-[#e4e2df] bg-white px-3.5 py-2.5 text-xs text-[#111b21] focus:outline-none focus:border-[#25D366]"
+        />
+        <button
+          type="button"
+          onClick={submit}
+          aria-label="Submit phone number"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white hover:opacity-90 transition-opacity"
+        >
+          <span className="material-symbols-outlined text-base">send</span>
+        </button>
+      </div>
+      {error && <p className="mt-1.5 text-[11px] font-semibold text-[#c0392b]">{error}</p>}
+    </div>
+  );
+};
+
+interface WhatsAppChatWidgetProps {
+  /** Called with (checkIn, checkOut, guests) when the guest taps "Book Now" after completing the chat booking flow. */
+  onNavigateToBooking?: (checkIn: string, checkOut: string, guests: number) => void;
+}
+
+export const WhatsAppChatWidget: React.FC<WhatsAppChatWidgetProps> = ({ onNavigateToBooking }) => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -195,6 +283,18 @@ export const WhatsAppChatWidget: React.FC = () => {
     pushBot("Wonderful! Let's get you booked. First, what's your full name?", 500);
   };
 
+  const advanceFromPhone = (fullPhone: string) => {
+    setDraft((d) => ({ ...d, phone: fullPhone }));
+    setStep('checkin');
+    pushBot('Perfect. Please pick your check-in date below 👇', 600);
+  };
+
+  const handlePhoneWidgetSubmit = (fullPhone: string) => {
+    setFallbackCta(false);
+    pushUser(fullPhone);
+    advanceFromPhone(fullPhone);
+  };
+
   const handleSend = (rawText?: string) => {
     const text = (rawText ?? input).trim();
     if (!text) return;
@@ -212,12 +312,10 @@ export const WhatsAppChatWidget: React.FC = () => {
     if (step === 'phone') {
       const digits = text.replace(/[^\d]/g, '');
       if (digits.length < 10) {
-        pushBot("That number looks incomplete — could you share it again with the country code, e.g. 9198940XXXXX?", 500);
+        pushBot("That number looks incomplete — could you pick your country above and enter your number, or share it again with the country code, e.g. +91 98765 43210?", 500);
         return;
       }
-      setDraft((d) => ({ ...d, phone: text }));
-      setStep('checkin');
-      pushBot('Perfect. Please pick your check-in date below 👇', 600);
+      advanceFromPhone(text);
       return;
     }
 
@@ -241,7 +339,8 @@ export const WhatsAppChatWidget: React.FC = () => {
 
   const handleCheckIn = (iso: string) => {
     pushUser(formatDisplay(iso));
-    setDraft((d) => ({ ...d, checkIn: iso, checkOut: d.checkOut && new Date(d.checkOut) > new Date(iso) ? d.checkOut : '' }));
+    const earliestCheckout = addDays(iso, 1);
+    setDraft((d) => ({ ...d, checkIn: iso, checkOut: d.checkOut && new Date(d.checkOut) >= new Date(earliestCheckout) ? d.checkOut : '' }));
     setStep('checkout');
     pushBot('Got it. And your check-out date?', 500);
   };
@@ -257,22 +356,15 @@ export const WhatsAppChatWidget: React.FC = () => {
     pushUser(`${n} guest${n > 1 ? 's' : ''}`);
     setDraft((d) => ({ ...d, guests: n }));
     setStep('summary');
-    pushBot("All set! Here's your booking enquiry — tap below to send it to us on WhatsApp and our concierge will confirm availability.", 600);
+    pushBot("All set! Here's your booking enquiry — tap Book Now to continue to booking with these details.", 600);
   };
 
-  const buildWhatsAppMessage = () => {
-    const lines = [
-      'Hi Wings Resort! I would like to enquire about a booking.',
-      `Name: ${draft.name}`,
-      `WhatsApp: ${draft.phone}`,
-      `Check-in: ${draft.checkIn ? formatDisplay(draft.checkIn) : '-'}`,
-      `Check-out: ${draft.checkOut ? formatDisplay(draft.checkOut) : '-'}`,
-      `Guests: ${draft.guests ?? '-'}`
-    ];
-    return lines.join('\n');
+  const handleBookNow = () => {
+    setOpen(false);
+    setStep('idle');
+    onNavigateToBooking?.(draft.checkIn, draft.checkOut, draft.guests ?? 2);
   };
 
-  const whatsappHref = `https://wa.me/${RESORT_WHATSAPP_E164}?text=${encodeURIComponent(buildWhatsAppMessage())}`;
   const fallbackWhatsAppHref = `https://wa.me/${RESORT_WHATSAPP_E164}?text=${encodeURIComponent('Hi Wings Resort! I have a question about my stay.')}`;
 
   const quickReplies: string[] =
@@ -384,8 +476,11 @@ export const WhatsAppChatWidget: React.FC = () => {
             )}
 
             {/* Guided booking widgets */}
-            {!typing && step === 'checkin' && <MiniCalendar onSelect={handleCheckIn} />}
-            {!typing && step === 'checkout' && <MiniCalendar minDate={draft.checkIn} onSelect={handleCheckOut} />}
+            {!typing && step === 'phone' && <PhoneEntry onSubmit={handlePhoneWidgetSubmit} />}
+            {!typing && step === 'checkin' && <MiniCalendar minDate={toISO(new Date())} onSelect={handleCheckIn} />}
+            {!typing && step === 'checkout' && (
+              <MiniCalendar minDate={draft.checkIn ? addDays(draft.checkIn, 1) : toISO(new Date())} onSelect={handleCheckOut} />
+            )}
             {!typing && step === 'guests' && (
               <div className="flex flex-wrap gap-2">
                 {[1, 2, 3, 4, 5, 6].map((n) => (
@@ -407,16 +502,14 @@ export const WhatsAppChatWidget: React.FC = () => {
                 <p className="text-xs text-[#111b21]"><strong>Check-in:</strong> {draft.checkIn && formatDisplay(draft.checkIn)}</p>
                 <p className="text-xs text-[#111b21]"><strong>Check-out:</strong> {draft.checkOut && formatDisplay(draft.checkOut)}</p>
                 <p className="text-xs text-[#111b21]"><strong>Guests:</strong> {draft.guests}</p>
-                <a
-                  href={whatsappHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setStep('idle')}
+                <button
+                  type="button"
+                  onClick={handleBookNow}
                   className="mt-2 flex items-center justify-center gap-2 w-full py-3 rounded-full bg-[#25D366] text-white text-xs font-bold uppercase tracking-wider shadow-md hover:opacity-95 transition-opacity"
                 >
-                  <span className="material-symbols-outlined text-base">chat</span>
-                  Send to WhatsApp
-                </a>
+                  <span className="material-symbols-outlined text-base">event_available</span>
+                  Book Now
+                </button>
               </div>
             )}
           </div>

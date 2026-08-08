@@ -1,4 +1,6 @@
 import React from 'react';
+import SplitText from './SplitText';
+import BlurText from './BlurText';
 
 export const OurStory: React.FC = () => {
   return (
@@ -29,13 +31,43 @@ export const OurStory: React.FC = () => {
           </div>
 
           <h2 className="font-headline text-3xl sm:text-4xl text-[#004449] mb-4 leading-tight font-medium">
-            Thoughtful Design.<br />
-            <span className="italic font-normal">Meaningful Spaces.</span>
+            <SplitText
+              text="Thoughtful Design."
+              tag="span"
+              splitType="words"
+              delay={40}
+              duration={0.9}
+              ease="power3.out"
+              from={{ opacity: 0, y: 30 }}
+              to={{ opacity: 1, y: 0 }}
+              threshold={0.15}
+              rootMargin="-80px"
+              textAlign="left"
+            />
+            <br />
+            <SplitText
+              text="Meaningful Spaces."
+              tag="span"
+              splitType="words"
+              delay={40}
+              duration={0.9}
+              ease="power3.out"
+              from={{ opacity: 0, y: 30 }}
+              to={{ opacity: 1, y: 0 }}
+              threshold={0.15}
+              rootMargin="-80px"
+              textAlign="left"
+              className="italic font-normal"
+            />
           </h2>
 
-          <p className="text-sm text-[#3f4849] mb-5 leading-relaxed font-body max-w-md">
-            Wings Resort was founded on a love for travel, nature, and the feeling of homes that breathe easy. We believe good design should look beautiful and feel like you.
-          </p>
+          <BlurText
+            text="Wings Resort was founded on a love for travel, nature, and the feeling of homes that breathe easy. We believe good design should look beautiful and feel like you."
+            animateBy="words"
+            direction="top"
+            delay={20}
+            className="text-sm text-[#3f4849] mb-5 leading-relaxed font-body max-w-md"
+          />
 
           <div className="mt-2 border-l-2 border-[#a93721] pl-6 py-2">
             <p className="font-headline text-lg text-[#004449] italic mb-1">

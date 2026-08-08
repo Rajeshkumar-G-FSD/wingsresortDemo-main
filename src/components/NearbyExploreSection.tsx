@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { getDirectionsUrl } from '../utils/directions';
+import SplitText from './SplitText';
+import BlurText from './BlurText';
 
 interface NearbyItem {
   name: string;
@@ -85,10 +87,27 @@ export const NearbyExploreSection: React.FC = () => {
       <div className="mx-auto max-w-[900px]">
         <div className="mb-8 text-center">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[.2em] text-[#f06c52]">Around the resort</p>
-          <h2 className="font-headline text-3xl text-[#004449] sm:text-4xl">Know Your Stay, Inside Out</h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-[#3f4849]">
-            Everything a guest needs to plan their trip — dining, shopping, and how to get around Ooty from Wings Resort.
-          </p>
+          <SplitText
+            text="Know Your Stay, Inside Out"
+            tag="h2"
+            splitType="words"
+            delay={40}
+            duration={0.9}
+            ease="power3.out"
+            from={{ opacity: 0, y: 30 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.15}
+            rootMargin="-80px"
+            textAlign="center"
+            className="font-headline text-3xl text-[#004449] sm:text-4xl"
+          />
+          <BlurText
+            text="Everything a guest needs to plan their trip — dining, shopping, and how to get around Ooty from Wings Resort."
+            animateBy="words"
+            direction="top"
+            delay={30}
+            className="mx-auto mt-3 max-w-xl justify-center text-sm leading-relaxed text-[#3f4849]"
+          />
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-[#e8e3dc] bg-white shadow-sm">

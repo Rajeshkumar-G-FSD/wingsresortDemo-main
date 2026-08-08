@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
+import SplitText from './SplitText';
 
 interface RuleGroup {
   id: string;
@@ -81,22 +82,30 @@ const RULE_GROUPS: RuleGroup[] = [
 
 export const HouseRulesSection: React.FC = () => {
   const [activeId, setActiveId] = useState(RULE_GROUPS[0].id);
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  const handleTabClick = (id: string) => {
-    setActiveId(id);
-    sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
+  const activeGroup = RULE_GROUPS.find((group) => group.id === activeId) ?? RULE_GROUPS[0];
 
   return (
     <section id="house-rules" className="bg-[#fbf9f6] px-5 py-16 md:px-12 md:py-20">
       <div className="mx-auto max-w-[1280px]">
         <div className="mb-10 text-center">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[.2em] text-[#f06c52]">Before you book</p>
-          <h2 className="font-headline text-3xl text-[#004449] sm:text-4xl">House Rules &amp; Information</h2>
+          <SplitText
+            text="House Rules & Information"
+            tag="h2"
+            splitType="words"
+            delay={40}
+            duration={0.9}
+            ease="power3.out"
+            from={{ opacity: 0, y: 30 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.15}
+            rootMargin="-80px"
+            textAlign="center"
+            className="font-headline text-3xl text-[#004449] sm:text-4xl"
+          />
         </div>
 
-        {/* Quick-jump pill tab bar */}
+        {/* Tab bar */}
         <div className="no-scrollbar mb-8 flex justify-start gap-2 overflow-x-auto rounded-full bg-white p-1.5 shadow-sm sm:justify-center">
           {RULE_GROUPS.map((group) => {
             const isActive = group.id === activeId;
@@ -104,7 +113,7 @@ export const HouseRulesSection: React.FC = () => {
               <button
                 key={group.id}
                 type="button"
-                onClick={() => handleTabClick(group.id)}
+                onClick={() => setActiveId(group.id)}
                 aria-current={isActive}
                 className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-wide transition-colors ${
                   isActive ? 'bg-[#004449] text-white shadow' : 'text-[#6f797a] hover:bg-[#eef3f2] hover:text-[#004449]'
@@ -117,30 +126,22 @@ export const HouseRulesSection: React.FC = () => {
           })}
         </div>
 
-        {/* Rule card grid */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {RULE_GROUPS.map((group) => (
-            <div
-              key={group.id}
-              ref={(el) => { sectionRefs.current[group.id] = el; }}
-              className="hover-lift scroll-mt-28 rounded-3xl border border-[#e8e3dc] bg-white p-6 soft-shadow"
-            >
-              <div className="mb-4 flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eef3f2] text-[#004449]">
-                  <span className="material-symbols-outlined text-lg">{group.icon}</span>
-                </span>
-                <h3 className="font-headline text-lg text-[#004449]">{group.heading}</h3>
-              </div>
-              <ul className="space-y-2.5">
-                {group.rules.map((rule) => (
-                  <li key={rule} className="flex items-start gap-3 text-sm leading-relaxed text-[#3f4849]">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f06c52]" />
-                    {rule}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        {/* Active rule panel — swaps in place, no repeated content */}
+        <div key={activeGroup.id} className="tab-panel-fade mx-auto max-w-[640px] rounded-3xl border border-[#e8e3dc] bg-white p-6 soft-shadow sm:p-8">
+          <div className="mb-5 flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#eef3f2] text-[#004449]">
+              <span className="material-symbols-outlined text-xl">{activeGroup.icon}</span>
+            </span>
+            <h3 className="font-headline text-xl text-[#004449]">{activeGroup.heading}</h3>
+          </div>
+          <ul className="space-y-3">
+            {activeGroup.rules.map((rule) => (
+              <li key={rule} className="flex items-start gap-3 text-sm leading-relaxed text-[#3f4849]">
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f06c52]" />
+                {rule}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

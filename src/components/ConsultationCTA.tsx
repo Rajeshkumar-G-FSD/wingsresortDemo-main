@@ -1,4 +1,6 @@
 import React from 'react';
+import SplitText from './SplitText';
+import BlurText from './BlurText';
 
 interface ConsultationCTAProps {
   onOpenBooking: () => void;
@@ -17,12 +19,27 @@ export const ConsultationCTA: React.FC<ConsultationCTAProps> = ({ onOpenBooking 
           <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/80 block mb-2">
             Wings Resort
           </span>
-          <h2 className="font-headline text-3xl sm:text-4xl lg:text-5xl font-medium text-white italic">
-            Ready to love your stay again?
-          </h2>
-          <p className="text-sm text-white/90 mt-2 max-w-xl font-body">
-            Let’s create a stay that inspires you every day.
-          </p>
+          <SplitText
+            text="Ready to love your stay again?"
+            tag="h2"
+            splitType="words"
+            delay={40}
+            duration={0.9}
+            ease="power3.out"
+            from={{ opacity: 0, y: 30 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.15}
+            rootMargin="-80px"
+            textAlign="left"
+            className="font-headline text-3xl sm:text-4xl lg:text-5xl font-medium text-white italic"
+          />
+          <BlurText
+            text="Let’s create a stay that inspires you every day."
+            animateBy="words"
+            direction="top"
+            delay={30}
+            className="text-sm text-white/90 mt-2 max-w-xl font-body justify-center md:justify-start"
+          />
         </div>
 
         <button

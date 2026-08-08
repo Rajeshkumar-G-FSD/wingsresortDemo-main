@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { HeroSection } from './components/HeroSection';
 import { FeaturedVillas } from './components/FeaturedVillas';
 import { OurStory } from './components/OurStory';
-import { AmenitiesSection } from './components/AmenitiesSection';
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { ResortMapSection } from './components/ResortMapSection';
 import { ConsultationCTA } from './components/ConsultationCTA';
@@ -29,6 +28,8 @@ import { Villa, Experience } from './types';
 import { SERVICES } from './data/resortData';
 
 const ADMIN_SESSION_KEY = 'wr_admin_authed';
+// Must stay in sync with the nav item ids in Header.tsx.
+const NAV_SECTION_IDS = ['hero', 'villas', 'story', 'faq', 'testimonials', 'contact'];
 
 export function App() {
   const [activeSection, setActiveSection] = useState<string>('hero');
@@ -67,6 +68,37 @@ export function App() {
     });
     return () => observer.disconnect();
   }, []);
+
+  // Scroll-spy: highlight whichever nav item corresponds to the section currently in view.
+  useEffect(() => {
+    if (activeServiceId || showRoomsPage || showAdminDashboard) return;
+
+    let ticking = false;
+    const HEADER_OFFSET = 140;
+
+    const updateActiveSection = () => {
+      ticking = false;
+      let current = NAV_SECTION_IDS[0];
+      for (const id of NAV_SECTION_IDS) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top - HEADER_OFFSET <= 0) {
+          current = id;
+        }
+      }
+      setActiveSection((prev) => (prev === current ? prev : current));
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(updateActiveSection);
+      }
+    };
+
+    updateActiveSection();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activeServiceId, showRoomsPage, showAdminDashboard]);
 
   const handleNavigate = (sectionId: string) => {
     setActiveSection(sectionId);
@@ -207,10 +239,10 @@ export function App() {
             {/* Our Story / Founders */}
             <OurStory />
 
-            <PropertyDetails />
-
             {/* About The Villa */}
             <AboutVillaSection />
+
+            <PropertyDetails />
 
             {/* Nearby Attractions */}
             <NearbyAttractionsSection />
@@ -226,9 +258,6 @@ export function App() {
 
             {/* House Rules & Information */}
             <HouseRulesSection />
-
-            {/* Why Clients Choose & Process */}
-            <AmenitiesSection />
 
             <FaqSection />
 
@@ -282,7 +311,7 @@ export function App() {
         onSuccess={handleAdminLoginSuccess}
       />
 
-      <WhatsAppChatWidget />
+      <WhatsAppChatWidget onNavigateToBooking={handleCheckAvailability} />
     </div>
   );
 }
