@@ -173,14 +173,7 @@ export function App() {
         )}
       </main>
 
-      <Footer
-        onNavigate={handleNavigate}
-        onOpenBooking={() => {
-          setBookingPreselectVilla(null);
-          setBookingPreset(null);
-          setIsBookingOpen(true);
-        }}
-      />
+      <Footer onNavigate={handleNavigate} />
 
       {/* Modals */}
       <VillaModal

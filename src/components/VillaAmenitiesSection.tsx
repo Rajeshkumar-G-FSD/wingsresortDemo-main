@@ -32,8 +32,8 @@ const AMENITY_GROUPS: AmenityGroup[] = [
       { icon: 'kitchen', label: 'Kitchenette', available: true },
       { icon: 'bolt', label: 'Power Backup', available: true },
       { icon: 'room_service', label: 'Room Service', available: true },
-      { icon: 'wifi', label: 'Wi-Fi', available: false },
-      { icon: 'cleaning_services', label: 'Housekeeping', available: false },
+      { icon: 'wifi', label: 'Wi-Fi', available: true },
+      { icon: 'cleaning_services', label: 'Housekeeping', available: true },
     ],
   },
   {
@@ -42,8 +42,8 @@ const AMENITY_GROUPS: AmenityGroup[] = [
     heading: 'General Services',
     items: [
       { icon: 'medical_services', label: 'Doctor on Call', available: true },
-      { icon: 'luggage', label: 'Luggage Assistance', available: false },
-      { icon: 'support_agent', label: 'Caretaker', available: false },
+      { icon: 'luggage', label: 'Luggage Assistance', available: true },
+      { icon: 'support_agent', label: 'Caretaker', available: true },
     ],
   },
   {

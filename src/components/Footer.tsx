@@ -1,20 +1,17 @@
 import React from 'react';
-import { Facebook, Instagram, Mail, Twitter } from 'lucide-react';
-import { CONTACT_INFO } from '../data/contactInfo';
+import { Facebook, Instagram, Youtube } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
-  onOpenBooking: () => void;
 }
 
 const socialLinks = [
   { id: 'instagram', label: 'Instagram', icon: Instagram, href: 'https://instagram.com' },
   { id: 'facebook', label: 'Facebook', icon: Facebook, href: 'https://facebook.com' },
-  { id: 'twitter', label: 'Twitter', icon: Twitter, href: 'https://twitter.com' },
-  { id: 'mail', label: 'Email', icon: Mail, href: `mailto:${CONTACT_INFO.email}` },
+  { id: 'youtube', label: 'YouTube', icon: Youtube, href: 'https://youtube.com' },
 ];
 
-export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBooking }) => {
+export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
     <footer id="footer" className="bg-[#004449] text-white pt-24 pb-6 md:pt-28">
       <div className="max-w-[1280px] mx-auto px-5 md:px-12">
@@ -67,8 +64,13 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBooking }) => 
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('services')} className="hover:text-[#f06c52] transition-colors">
-                  Amenities & Spa
+                <button onClick={() => onNavigate('about')} className="hover:text-[#f06c52] transition-colors">
+                  Property Details
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('villa-amenities')} className="hover:text-[#f06c52] transition-colors">
+                  Amenities
                 </button>
               </li>
               <li>
@@ -91,23 +93,23 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBooking }) => 
             </h4>
             <ul className="space-y-3 text-xs">
               <li>
+                <button onClick={() => onNavigate('explore')} className="hover:text-[#f06c52] transition-colors">
+                  Nearby Attractions
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('house-rules')} className="hover:text-[#f06c52] transition-colors">
+                  House Rules
+                </button>
+              </li>
+              <li>
                 <button onClick={() => onNavigate('faq')} className="hover:text-[#f06c52] transition-colors">
                   FAQ
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('about')} className="hover:text-[#f06c52] transition-colors">
-                  Booking Process
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onNavigate('about')} className="hover:text-[#f06c52] transition-colors">
-                  Guest Guide
-                </button>
-              </li>
-              <li>
-                <button onClick={onOpenBooking} className="hover:text-[#f06c52] transition-colors">
-                  Cancellation Policy
+                <button onClick={() => onNavigate('testimonials')} className="hover:text-[#f06c52] transition-colors">
+                  Reviews
                 </button>
               </li>
               <li>
