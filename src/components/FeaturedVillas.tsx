@@ -13,6 +13,7 @@ interface FeaturedVillasProps {
   onSelectVilla: (villa: Villa) => void;
   onBookVillaDirect: (villa: Villa) => void;
   onCheckAvailability: (checkIn: string, checkOut: string, guests: number) => void;
+  onViewAllRooms: () => void;
   openCheckInTrigger?: number;
 }
 
@@ -20,6 +21,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   onSelectVilla,
   onBookVillaDirect,
   onCheckAvailability,
+  onViewAllRooms,
   openCheckInTrigger
 }) => {
   const [activeCategory, setActiveCategory] = useState<string>('All');
@@ -318,7 +320,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
         {/* View All Projects CTA */}
         <div className="mt-6 text-center">
           <button
-            onClick={() => setActiveCategory('All')}
+            onClick={onViewAllRooms}
             className="inline-flex items-center justify-center px-5 py-2 rounded-full border border-[#8fd2d8] text-[#8fd2d8] hover:bg-[#8fd2d8] hover:text-[#004449] transition-all duration-300 text-[9px] font-semibold uppercase tracking-widest"
           >
             Explore All Accommodations

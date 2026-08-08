@@ -4,9 +4,10 @@ interface HeaderProps {
   onOpenConsultation: () => void;
   activeSection: string;
   onNavigate: (sectionId: string) => void;
+  onOpenAdmin: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSection, onNavigate }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSection, onNavigate, onOpenAdmin }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -86,6 +87,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
         {/* Book CTA & Mobile Toggle */}
         <div className="flex items-center gap-4">
           <button
+            onClick={onOpenAdmin}
+            aria-label="Admin login"
+            title="Admin"
+            className="hidden lg:inline-flex h-9 w-9 items-center justify-center rounded-full text-[#6f797a] hover:bg-[#004449]/5 hover:text-[#004449] transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+          </button>
+
+          <button
             onClick={onOpenConsultation}
             className="hidden sm:inline-flex items-center gap-2 px-7 py-3 rounded-full coral-gradient text-white text-xs font-semibold uppercase tracking-[0.1em] hover:opacity-95 transition-all shadow-md shadow-[#a93721]/20 transform hover:-translate-y-0.5"
           >
@@ -127,6 +137,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
               className="mt-4 w-full py-4 rounded-full coral-gradient text-white text-sm font-semibold uppercase tracking-wider text-center shadow-lg"
             >
               Reserve Now
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenAdmin();
+              }}
+              className="flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#6f797a] hover:text-[#004449]"
+            >
+              <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
+              Admin
             </button>
           </div>
         </div>

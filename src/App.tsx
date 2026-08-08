@@ -13,6 +13,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { FaqSection } from './components/FaqSection';
 import { PropertyDetails } from './components/PropertyDetails';
 import { NearbyExploreSection } from './components/NearbyExploreSection';
+import { NearbyAttractionsSection } from './components/NearbyAttractionsSection';
 import { AboutVillaSection } from './components/AboutVillaSection';
 import { VillaAmenitiesSection } from './components/VillaAmenitiesSection';
 import { HouseRulesSection } from './components/HouseRulesSection';
@@ -21,8 +22,13 @@ import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { WhatsAppChatWidget } from './components/WhatsAppChatWidget';
 import { ServiceDetailPage } from './components/ServiceDetailPage';
+import { RoomsPage } from './components/RoomsPage';
+import { AdminLoginModal } from './components/AdminLoginModal';
+import { AdminDashboardPage } from './components/AdminDashboardPage';
 import { Villa, Experience } from './types';
 import { SERVICES } from './data/resortData';
+
+const ADMIN_SESSION_KEY = 'wr_admin_authed';
 
 export function App() {
   const [activeSection, setActiveSection] = useState<string>('hero');
@@ -33,6 +39,15 @@ export function App() {
   const [bookingPreselectVilla, setBookingPreselectVilla] = useState<Villa | null>(null);
   const [bookingPreset, setBookingPreset] = useState<{ checkIn: string; checkOut: string; guests: number } | null>(null);
   const [openCheckInTrigger, setOpenCheckInTrigger] = useState(0);
+  const [showRoomsPage, setShowRoomsPage] = useState(false);
+  const [roomsSearch, setRoomsSearch] = useState<{ checkIn: string; checkOut: string; adults: number }>({
+    checkIn: '',
+    checkOut: '',
+    adults: 2,
+  });
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const [isAdminAuthed, setIsAdminAuthed] = useState(() => sessionStorage.getItem(ADMIN_SESSION_KEY) === '1');
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
 
   useEffect(() => {
     const targets = Array.from(document.querySelectorAll<HTMLElement>('main > *'));
@@ -55,8 +70,10 @@ export function App() {
 
   const handleNavigate = (sectionId: string) => {
     setActiveSection(sectionId);
-    if (activeServiceId) {
+    if (activeServiceId || showRoomsPage || showAdminDashboard) {
       setActiveServiceId(null);
+      setShowRoomsPage(false);
+      setShowAdminDashboard(false);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
@@ -94,9 +111,49 @@ export function App() {
   };
 
   const handleCheckAvailability = (checkIn: string, checkOut: string, guests: number) => {
-    setBookingPreselectVilla(null);
-    setBookingPreset({ checkIn, checkOut, guests });
-    setIsBookingOpen(true);
+    setRoomsSearch({ checkIn, checkOut, adults: guests });
+    setShowRoomsPage(true);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  };
+
+  const handleViewAllRooms = () => {
+    setRoomsSearch((prev) => (prev.checkIn && prev.checkOut ? prev : { ...prev, checkIn: '', checkOut: '' }));
+    setShowRoomsPage(true);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  };
+
+  const handleBackFromRooms = () => {
+    setShowRoomsPage(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById('villas')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  };
+
+  const handleOpenAdmin = () => {
+    setActiveServiceId(null);
+    setShowRoomsPage(false);
+    if (isAdminAuthed) {
+      setShowAdminDashboard(true);
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    } else {
+      setIsAdminLoginOpen(true);
+    }
+  };
+
+  const handleAdminLoginSuccess = () => {
+    sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+    setIsAdminAuthed(true);
+    setIsAdminLoginOpen(false);
+    setShowAdminDashboard(true);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  };
+
+  const handleAdminLogout = () => {
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    setIsAdminAuthed(false);
+    setShowAdminDashboard(false);
   };
 
   return (
@@ -107,11 +164,21 @@ export function App() {
         activeSection={activeSection}
         onNavigate={handleNavigate}
         onOpenConsultation={handleOpenConsultation}
+        onOpenAdmin={handleOpenAdmin}
       />
 
       {/* Main Content */}
       <main>
-        {activeServiceId ? (
+        {showAdminDashboard ? (
+          <AdminDashboardPage onLogout={handleAdminLogout} />
+        ) : showRoomsPage ? (
+          <RoomsPage
+            initialCheckIn={roomsSearch.checkIn}
+            initialCheckOut={roomsSearch.checkOut}
+            initialAdults={roomsSearch.adults}
+            onBack={handleBackFromRooms}
+          />
+        ) : activeServiceId ? (
           <ServiceDetailPage
             service={SERVICES.find((s) => s.id === activeServiceId) ?? SERVICES[0]}
             relatedServices={SERVICES.filter((s) => s.id !== activeServiceId)}
@@ -133,6 +200,7 @@ export function App() {
               onSelectVilla={(v) => setSelectedVilla(v)}
               onBookVillaDirect={handleOpenBookingWithVilla}
               onCheckAvailability={handleCheckAvailability}
+              onViewAllRooms={handleViewAllRooms}
               openCheckInTrigger={openCheckInTrigger}
             />
 
@@ -144,7 +212,10 @@ export function App() {
             {/* About The Villa */}
             <AboutVillaSection />
 
-            {/* Nearby Landmarks / Food & Shopping / Transportation */}
+            {/* Nearby Attractions */}
+            <NearbyAttractionsSection />
+
+            {/* Food & Shopping / Transportation */}
             <NearbyExploreSection />
 
             {/* Resort Map (real Google Map embed) */}
@@ -203,6 +274,12 @@ export function App() {
         presetCheckIn={bookingPreset?.checkIn}
         presetCheckOut={bookingPreset?.checkOut}
         presetGuests={bookingPreset?.guests}
+      />
+
+      <AdminLoginModal
+        isOpen={isAdminLoginOpen}
+        onClose={() => setIsAdminLoginOpen(false)}
+        onSuccess={handleAdminLoginSuccess}
       />
 
       <WhatsAppChatWidget />

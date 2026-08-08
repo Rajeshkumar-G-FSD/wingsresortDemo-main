@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
-
-const RESORT_ORIGIN = 'Wings Resort Ooty';
-
-const getDirectionsUrl = (destination: string) =>
-  `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(RESORT_ORIGIN)}&destination=${encodeURIComponent(`${destination}, Ooty`)}&travelmode=driving`;
+import { getDirectionsUrl } from '../utils/directions';
 
 interface NearbyItem {
   name: string;
@@ -24,28 +20,6 @@ interface NearbyTab {
 }
 
 const TABS: NearbyTab[] = [
-  {
-    id: 'landmarks',
-    label: 'Key Landmarks',
-    icon: 'landscape',
-    groups: [
-      {
-        heading: 'Top Attractions',
-        items: [
-          { name: 'Ooty Lake', distance: '2.5 km' },
-          { name: 'Coonoor Falls', distance: '18.9 km' },
-          { name: 'Rallia Dam', distance: '19 km' },
-        ],
-      },
-      {
-        heading: 'Nearby Landmarks',
-        items: [
-          { name: 'Government Botanical Garden', distance: '2.2 km' },
-          { name: 'Honeymoon Boat House', distance: '2.7 km' },
-        ],
-      },
-    ],
-  },
   {
     id: 'food',
     label: 'Food & Shopping',
@@ -113,7 +87,7 @@ export const NearbyExploreSection: React.FC = () => {
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[.2em] text-[#f06c52]">Around the resort</p>
           <h2 className="font-headline text-3xl text-[#004449] sm:text-4xl">Know Your Stay, Inside Out</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-[#3f4849]">
-            Everything a guest needs to plan their trip — landmarks, dining, shopping, and how to get around Ooty from Wings Resort.
+            Everything a guest needs to plan their trip — dining, shopping, and how to get around Ooty from Wings Resort.
           </p>
         </div>
 
