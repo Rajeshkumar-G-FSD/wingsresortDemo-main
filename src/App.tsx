@@ -141,9 +141,6 @@ export function App() {
 
             <PropertyDetails />
 
-            {/* Contact Wings Resort */}
-            <ContactSection />
-
             {/* About The Villa */}
             <AboutVillaSection />
 
@@ -166,6 +163,9 @@ export function App() {
 
             {/* Testimonials Quote Slider */}
             <TestimonialsSection />
+
+            {/* Contact Wings Resort */}
+            <ContactSection />
 
             {/* Coral Banner CTA */}
             <ConsultationCTA onOpenBooking={handleOpenConsultation} />
