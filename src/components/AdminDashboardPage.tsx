@@ -187,6 +187,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onLogout
                       <td className="px-4 py-4">
                         <span className="block font-semibold text-[#004449]">{formatINR(b.amountPayingNow)} <span className="font-normal text-[#6f797a]">now</span></span>
                         <span className="block text-[#6f797a]">of {formatINR(b.total)} total</span>
+                        {b.total - b.amountPayingNow > 0 && (
+                          <span className="block font-semibold text-[#c17a1f]">Balance: {formatINR(b.total - b.amountPayingNow)}</span>
+                        )}
                         {b.bookingMode === 'pay_at_resort' ? (
                           <span className="mt-1 inline-block rounded-full bg-[#eef3f2] px-2 py-0.5 text-[10px] font-bold uppercase text-[#004449]">Pay at Resort</span>
                         ) : b.transactionId ? (
