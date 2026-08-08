@@ -26,9 +26,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
     { id: 'hero', label: 'HOME' },
     { id: 'villas', label: 'PROPERTY' },
     { id: 'story', label: 'ABOUT US' },
-    { id: 'testimonials', label: 'REVIEWS' },
     { id: 'faq', label: 'FAQ' },
-    { id: 'footer', label: 'CONTACT' },
+    { id: 'testimonials', label: 'REVIEWS' },
+    { id: 'contact', label: 'CONTACT' },
   ];
 
   const handleNavClick = (id: string) => {

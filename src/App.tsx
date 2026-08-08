@@ -6,18 +6,22 @@ import { AmenitiesSection } from './components/AmenitiesSection';
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { ResortMapSection } from './components/ResortMapSection';
 import { ConsultationCTA } from './components/ConsultationCTA';
-import { JournalSection } from './components/JournalSection';
 import { VillaModal } from './components/VillaModal';
 import { ExperienceModal } from './components/ExperienceModal';
 import { BookingModal } from './components/BookingModal';
 import { LoadingScreen } from './components/LoadingScreen';
 import { FaqSection } from './components/FaqSection';
 import { PropertyDetails } from './components/PropertyDetails';
+import { NearbyExploreSection } from './components/NearbyExploreSection';
+import { AboutVillaSection } from './components/AboutVillaSection';
+import { VillaAmenitiesSection } from './components/VillaAmenitiesSection';
+import { HouseRulesSection } from './components/HouseRulesSection';
+import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { WhatsAppChatWidget } from './components/WhatsAppChatWidget';
 import { ServiceDetailPage } from './components/ServiceDetailPage';
-import { Villa, Experience, JournalPost } from './types';
+import { Villa, Experience } from './types';
 import { SERVICES } from './data/resortData';
 
 export function App() {
@@ -25,7 +29,6 @@ export function App() {
   const [selectedVilla, setSelectedVilla] = useState<Villa | null>(null);
   const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
-  const [selectedJournalPost, setSelectedJournalPost] = useState<JournalPost | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
   const [bookingPreselectVilla, setBookingPreselectVilla] = useState<Villa | null>(null);
   const [bookingPreset, setBookingPreset] = useState<{ checkIn: string; checkOut: string; guests: number } | null>(null);
@@ -138,14 +141,26 @@ export function App() {
 
             <PropertyDetails />
 
-            {/* Resort Map */}
+            {/* Contact Wings Resort */}
+            <ContactSection />
+
+            {/* About The Villa */}
+            <AboutVillaSection />
+
+            {/* Nearby Landmarks / Food & Shopping / Transportation */}
+            <NearbyExploreSection />
+
+            {/* Resort Map (real Google Map embed) */}
             <ResortMapSection />
+
+            {/* Amenities at Wings Resort 3BHK Ooty */}
+            <VillaAmenitiesSection />
+
+            {/* House Rules & Information */}
+            <HouseRulesSection />
 
             {/* Why Clients Choose & Process */}
             <AmenitiesSection />
-
-            {/* Design Journal */}
-            <JournalSection onSelectPost={(post) => setSelectedJournalPost(post)} />
 
             <FaqSection />
 
@@ -196,40 +211,6 @@ export function App() {
         presetCheckOut={bookingPreset?.checkOut}
         presetGuests={bookingPreset?.guests}
       />
-
-      {/* Journal Post Simple Modal */}
-      {selectedJournalPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-2xl bg-[#fbf9f6] rounded-3xl overflow-hidden shadow-2xl border border-[#e4e2df] max-h-[90vh] flex flex-col p-6 sm:p-8">
-            <button
-              onClick={() => setSelectedJournalPost(null)}
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-[#004449]/10 text-[#004449] flex items-center justify-center hover:bg-[#004449] hover:text-white transition-colors"
-            >
-              <span className="material-symbols-outlined text-xl">close</span>
-            </button>
-
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#a93721] mb-2">
-              {selectedJournalPost.category} • {selectedJournalPost.date}
-            </span>
-
-            <h2 className="font-headline text-3xl text-[#004449] font-bold mb-4">
-              {selectedJournalPost.title}
-            </h2>
-
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-6">
-              <img
-                src={selectedJournalPost.imageUrl}
-                alt={selectedJournalPost.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <p className="text-sm text-[#3f4849] leading-relaxed overflow-y-auto pr-2">
-              {selectedJournalPost.content} Architecture isn’t merely about structural shelter; it is an acoustic and thermal instrument that shapes our daily state of mind. At Wings Resort, every villa is angled according to prevailing ocean breeze trade winds, inviting natural cooling without acoustic noise. Light wood accents, organic linens, and native flora complete the sanctuary.
-            </p>
-          </div>
-        </div>
-      )}
 
       <WhatsAppChatWidget />
     </div>

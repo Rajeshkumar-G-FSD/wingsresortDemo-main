@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Facebook, Instagram, Mail, Twitter } from 'lucide-react';
+import { CONTACT_INFO } from '../data/contactInfo';
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
@@ -10,26 +11,14 @@ const socialLinks = [
   { id: 'instagram', label: 'Instagram', icon: Instagram, href: 'https://instagram.com' },
   { id: 'facebook', label: 'Facebook', icon: Facebook, href: 'https://facebook.com' },
   { id: 'twitter', label: 'Twitter', icon: Twitter, href: 'https://twitter.com' },
-  { id: 'mail', label: 'Email', icon: Mail, href: 'mailto:concierge@wingsresort.com' },
+  { id: 'mail', label: 'Email', icon: Mail, href: `mailto:${CONTACT_INFO.email}` },
 ];
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBooking }) => {
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newsletterEmail) {
-      setSubscribed(true);
-      setTimeout(() => setSubscribed(false), 4000);
-      setNewsletterEmail('');
-    }
-  };
-
   return (
     <footer id="footer" className="bg-[#004449] text-white pt-24 pb-6 md:pt-28">
       <div className="max-w-[1280px] mx-auto px-5 md:px-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 pb-10 border-b border-white/15">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 pb-10 border-b border-white/15">
           {/* Brand Col */}
           <div>
             <button onClick={() => onNavigate('hero')} className="flex items-center gap-3 mb-4 text-left">
@@ -92,11 +81,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBooking }) => 
                   Our Story
                 </button>
               </li>
-              <li>
-                <button onClick={() => onNavigate('journal')} className="hover:text-[#f06c52] transition-colors">
-                  Design Journal
-                </button>
-              </li>
             </ul>
           </div>
 
@@ -126,66 +110,12 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenBooking }) => 
                   Cancellation Policy
                 </button>
               </li>
-            </ul>
-          </div>
-
-          {/* Connect */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
-              Connect
-            </h4>
-            <ul className="space-y-3 text-xs">
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-sm text-[#f06c52] mt-0.5">location_on</span>
-                <span>190, A19, Ooty, Tamil Nadu 643001</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm text-[#f06c52]">call</span>
-                <span>098940 88044</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm text-[#f06c52]">mail</span>
-                <span>concierge@wingsresort.com</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-sm text-[#f06c52] mt-0.5">schedule</span>
-                <span>Open 24 hours<br />Every day, Mon – Sun</span>
-              </li>
-            </ul>
-          </div>
-
-          {/* Stay Inspired */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
-              Stay Inspired
-            </h4>
-            <p className="text-xs leading-relaxed mb-4">
-              Get stay tips, behind the scenes, and tropical vibes to your inbox.
-            </p>
-            <form onSubmit={handleSubscribe} className="space-y-2">
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Your email address"
-                  value={newsletterEmail}
-                  onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="px-4 py-2.5 rounded-full bg-white border border-white/15 text-xs text-[#004449] focus:outline-none flex-grow min-w-0"
-                  required
-                />
-                <button
-                  type="submit"
-                  aria-label="Subscribe"
-                  className="w-9 h-9 shrink-0 rounded-full coral-gradient text-white flex items-center justify-center hover:opacity-95"
-                >
-                  <span className="material-symbols-outlined text-base">arrow_forward</span>
+              <li>
+                <button onClick={() => onNavigate('contact')} className="hover:text-[#f06c52] transition-colors">
+                  Contact Us
                 </button>
-              </div>
-              {subscribed && (
-                <p className="text-[11px] font-semibold text-[#8fd2d8]">
-                  ✓ Thank you for subscribing!
-                </p>
-              )}
-            </form>
+              </li>
+            </ul>
           </div>
         </div>
 
