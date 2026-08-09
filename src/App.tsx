@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { HeroSection } from './components/HeroSection';
 import { FeaturedVillas } from './components/FeaturedVillas';
 import { OurStory } from './components/OurStory';
-import { TestimonialsSection } from './components/TestimonialsSection';
+import { GoogleReviewsSection } from './components/GoogleReviewsSection';
 import { ResortMapSection } from './components/ResortMapSection';
 import { ConsultationCTA } from './components/ConsultationCTA';
 import { VillaModal } from './components/VillaModal';
@@ -261,8 +261,8 @@ export function App() {
 
             <FaqSection />
 
-            {/* Testimonials Quote Slider */}
-            <TestimonialsSection />
+            {/* Guest Reviews: real Google reviews, auto-advancing quote carousel */}
+            <GoogleReviewsSection />
 
             {/* Contact Wings Resort */}
             <ContactSection />

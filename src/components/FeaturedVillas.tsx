@@ -14,6 +14,23 @@ const addDays = (iso: string, days: number) => {
 const FEATURED_EXTRA_ROOM_IDS = ['2bhk-villa', 'wood-house'];
 const featuredExtraRooms = ROOM_CATEGORIES.filter((r) => FEATURED_EXTRA_ROOM_IDS.includes(r.id));
 
+// Every real Wings Resort property/room photo not already used above as a bookable room card.
+const STATIC_PROPERTY_PHOTOS = [
+  { src: '/images/wings_resort_a_type_bedroom.png', label: 'A-Type Bedroom' },
+  { src: '/images/wings_resort_threebedroom.png', label: 'Three Bedroom Residence' },
+  { src: '/images/wings_deluex_three_room.jpg.png', label: 'Deluxe Three Room Suite' },
+  { src: '/images/wings_resort_couples_bed_room.png', label: 'Couples Bed Room' },
+  { src: '/images/wings_resort_family_bed_room.png', label: 'Family Bed Room' },
+  { src: '/images/wings_resort_5bh_rooms_frontview.png', label: 'Five Bedroom House' },
+  { src: '/images/wings_resort_a_house_fontview.png', label: 'A-Type House — Front View' },
+  { src: '/images/wings_resort_a_type_building.png', label: 'A-Type Villa' },
+  { src: '/images/wings_resort_a_type_house.jpg', label: 'A-Type House — Evening' },
+  { src: '/images/wings_resort_five_bh_house.jpg', label: 'Five Bedroom Residence' },
+  { src: '/images/wings_resort_rooms_frontview.png', label: 'Guest Rooms' },
+  { src: '/images/wings_resort_wood_house_rooms_fontview.png', label: 'Wood House Rooms' },
+  { src: '/images/wings_resort_parking.png', label: 'Resort Grounds & Parking' },
+];
+
 interface FeaturedVillasProps {
   onSelectRoom: (room: RoomCategory) => void;
   onBookRoomDirect: (room: RoomCategory) => void;
@@ -194,60 +211,17 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
 
         {/* Villa Cards Grid */}
         <div ref={propertiesRef} className="properties-reveal grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-          <article className="group flex flex-col overflow-hidden" aria-label="A-Type Bedroom">
-            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
-              <img src="/images/wings_resort_a_type_bedroom.png" alt="Wings Resort A-Type Bedroom" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-            </div>
-            <div className="flex flex-grow flex-col pt-3 text-center">
-              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">A-Type Bedroom</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
-            </div>
-          </article>
-          <article className="group flex flex-col overflow-hidden" aria-label="Three Bedroom Residence">
-            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
-              <img src="/images/wings_resort_threebedroom.png" alt="Wings Resort Three Bedroom Residence" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-            </div>
-            <div className="flex flex-grow flex-col pt-3 text-center">
-              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Three Bedroom Residence</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
-            </div>
-          </article>
-          <article className="group flex flex-col overflow-hidden" aria-label="Deluxe Three Room Suite">
-            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
-              <img src="/images/wings_deluex_three_room.jpg.png" alt="Wings Resort Deluxe Three Room Suite" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-            </div>
-            <div className="flex flex-grow flex-col pt-3 text-center">
-              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Deluxe Three Room Suite</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
-            </div>
-          </article>
-          <article className="group flex flex-col overflow-hidden" aria-label="Couples Bed Room">
-            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
-              <img src="/images/wings_resort_couples_bed_room.png" alt="Wings Resort Couples Bed Room" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-            </div>
-            <div className="flex flex-grow flex-col pt-3 text-center">
-              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Couples Bed Room</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
-            </div>
-          </article>
-          <article className="group flex flex-col overflow-hidden" aria-label="Family Bed Room">
-            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
-              <img src="/images/wings_resort_family_bed_room.png" alt="Wings Resort Family Bed Room" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-            </div>
-            <div className="flex flex-grow flex-col pt-3 text-center">
-              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Family Bed Room</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
-            </div>
-          </article>
-          <article className="group flex flex-col overflow-hidden" aria-label="Five Bedroom House">
-            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
-              <img src="/images/wings_resort_5bh_rooms_frontview.png" alt="Wings Resort Five Bedroom House" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-            </div>
-            <div className="flex flex-grow flex-col pt-3 text-center">
-              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Five Bedroom House</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
-            </div>
-          </article>
+          {STATIC_PROPERTY_PHOTOS.map((photo) => (
+            <article key={photo.src} className="group flex flex-col overflow-hidden" aria-label={photo.label}>
+              <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
+                <img src={photo.src} alt={`Wings Resort ${photo.label}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+              </div>
+              <div className="flex flex-grow flex-col pt-3 text-center">
+                <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">{photo.label}</h3>
+                <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
+              </div>
+            </article>
+          ))}
           {featuredExtraRooms.map((room) => (
             <div
               key={room.id}
