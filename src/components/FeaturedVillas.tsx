@@ -239,6 +239,15 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
               <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
             </div>
           </article>
+          <article className="group flex flex-col overflow-hidden" aria-label="Five Bedroom House">
+            <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
+              <img src="/images/wings_resort_5bh_rooms_frontview.png" alt="Wings Resort Five Bedroom House" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+            </div>
+            <div className="flex flex-grow flex-col pt-3 text-center">
+              <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Five Bedroom House</h3>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
+            </div>
+          </article>
           {featuredExtraRooms.map((room) => (
             <div
               key={room.id}
