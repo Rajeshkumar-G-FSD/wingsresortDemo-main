@@ -14,7 +14,9 @@ const addDays = (iso: string, days: number) => {
 const FEATURED_EXTRA_ROOM_IDS = ['2bhk-villa', 'wood-house'];
 const featuredExtraRooms = ROOM_CATEGORIES.filter((r) => FEATURED_EXTRA_ROOM_IDS.includes(r.id));
 
-// Every real Wings Resort property/room photo not already used above as a bookable room card.
+// One photo per distinct Wings Resort property/room type — no repeats of the same property from a
+// different angle (e.g. the A-Type house, Five Bedroom house, and Wood House each show up once here;
+// the Wood House and 2BHK Villa get their one appearance as bookable cards below instead).
 const STATIC_PROPERTY_PHOTOS = [
   { src: '/images/wings_resort_a_type_bedroom.png', label: 'A-Type Bedroom' },
   { src: '/images/wings_resort_threebedroom.png', label: 'Three Bedroom Residence' },
@@ -22,12 +24,6 @@ const STATIC_PROPERTY_PHOTOS = [
   { src: '/images/wings_resort_couples_bed_room.png', label: 'Couples Bed Room' },
   { src: '/images/wings_resort_family_bed_room.png', label: 'Family Bed Room' },
   { src: '/images/wings_resort_5bh_rooms_frontview.png', label: 'Five Bedroom House' },
-  { src: '/images/wings_resort_a_house_fontview.png', label: 'A-Type House — Front View' },
-  { src: '/images/wings_resort_a_type_building.png', label: 'A-Type Villa' },
-  { src: '/images/wings_resort_a_type_house.jpg', label: 'A-Type House — Evening' },
-  { src: '/images/wings_resort_five_bh_house.jpg', label: 'Five Bedroom Residence' },
-  { src: '/images/wings_resort_rooms_frontview.png', label: 'Guest Rooms' },
-  { src: '/images/wings_resort_wood_house_rooms_fontview.png', label: 'Wood House Rooms' },
   { src: '/images/wings_resort_parking.png', label: 'Resort Grounds & Parking' },
 ];
 
