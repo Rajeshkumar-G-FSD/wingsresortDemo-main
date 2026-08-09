@@ -1,25 +1,3 @@
-export interface Villa {
-  id: string;
-  name: string;
-  location: string;
-  category: 'Oceanfront' | 'Garden' | 'Penthouse' | 'Private Island';
-  badge: string;
-  tagline: string;
-  description: string;
-  pricePerNight: number;
-  rating: number;
-  reviewsCount: number;
-  guests: number;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
-  imageUrl: string;
-  gallery: string[];
-  amenities: string[];
-  features: string[];
-  featured?: boolean;
-}
-
 export interface Experience {
   id: string;
   title: string;

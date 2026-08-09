@@ -24,7 +24,7 @@ import { ServiceDetailPage } from './components/ServiceDetailPage';
 import { RoomsPage } from './components/RoomsPage';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminDashboardPage } from './components/AdminDashboardPage';
-import { Villa, Experience } from './types';
+import { RoomCategory, Experience } from './types';
 import { SERVICES } from './data/resortData';
 
 const ADMIN_SESSION_KEY = 'wr_admin_authed';
@@ -33,11 +33,11 @@ const NAV_SECTION_IDS = ['hero', 'villas', 'story', 'faq', 'testimonials', 'cont
 
 export function App() {
   const [activeSection, setActiveSection] = useState<string>('hero');
-  const [selectedVilla, setSelectedVilla] = useState<Villa | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<RoomCategory | null>(null);
   const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
-  const [bookingPreselectVilla, setBookingPreselectVilla] = useState<Villa | null>(null);
+  const [bookingPreselectRoom, setBookingPreselectRoom] = useState<RoomCategory | null>(null);
   const [bookingPreset, setBookingPreset] = useState<{ checkIn: string; checkOut: string; guests: number } | null>(null);
   const [openCheckInTrigger, setOpenCheckInTrigger] = useState(0);
   const [showRoomsPage, setShowRoomsPage] = useState(false);
@@ -137,8 +137,8 @@ export function App() {
     setOpenCheckInTrigger((t) => t + 1);
   };
 
-  const handleOpenBookingWithVilla = (villa: Villa) => {
-    setBookingPreselectVilla(villa);
+  const handleOpenBookingWithRoom = (room: RoomCategory) => {
+    setBookingPreselectRoom(room);
     setIsBookingOpen(true);
   };
 
@@ -217,7 +217,7 @@ export function App() {
             onBack={handleBackFromService}
             onSelectService={handleSelectService}
             onOpenBooking={() => {
-              setBookingPreselectVilla(null);
+              setBookingPreselectRoom(null);
               setBookingPreset(null);
               setIsBookingOpen(true);
             }}
@@ -229,8 +229,8 @@ export function App() {
 
             {/* Featured Villas & Spaces (Teal Dark Section) */}
             <FeaturedVillas
-              onSelectVilla={(v) => setSelectedVilla(v)}
-              onBookVillaDirect={handleOpenBookingWithVilla}
+              onSelectRoom={(r) => setSelectedRoom(r)}
+              onBookRoomDirect={handleOpenBookingWithRoom}
               onCheckAvailability={handleCheckAvailability}
               onViewAllRooms={handleViewAllRooms}
               openCheckInTrigger={openCheckInTrigger}
@@ -277,9 +277,9 @@ export function App() {
 
       {/* Modals */}
       <VillaModal
-        villa={selectedVilla}
-        onClose={() => setSelectedVilla(null)}
-        onBookDirect={handleOpenBookingWithVilla}
+        room={selectedRoom}
+        onClose={() => setSelectedRoom(null)}
+        onBookDirect={handleOpenBookingWithRoom}
       />
 
       <ExperienceModal
@@ -296,10 +296,10 @@ export function App() {
         isOpen={isBookingOpen}
         onClose={() => {
           setIsBookingOpen(false);
-          setBookingPreselectVilla(null);
+          setBookingPreselectRoom(null);
           setBookingPreset(null);
         }}
-        preselectedVilla={bookingPreselectVilla}
+        preselectedRoom={bookingPreselectRoom}
         presetCheckIn={bookingPreset?.checkIn}
         presetCheckOut={bookingPreset?.checkOut}
         presetGuests={bookingPreset?.guests}

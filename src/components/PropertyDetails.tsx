@@ -1,5 +1,5 @@
 import React from 'react';
-import SplitText from './SplitText';
+import { ScrollReveal } from './lightswind/scroll-reveal';
 
 const facilities = ['Free WiFi', 'Free parking', 'Room service', 'Private bathroom', 'Private parking', 'Flat-screen TV'];
 
@@ -8,30 +8,67 @@ export const PropertyDetails: React.FC = () => (
     <div className="mx-auto max-w-[1120px]">
       <div className="mb-10 max-w-2xl">
         <p className="mb-3 text-[10px] font-bold uppercase tracking-[.22em] text-[#f06c52]">About Wings Resort</p>
-        <SplitText
-          text="About this property"
-          tag="h2"
-          splitType="words"
-          delay={40}
-          duration={0.9}
-          ease="power3.out"
-          from={{ opacity: 0, y: 30 }}
-          to={{ opacity: 1, y: 0 }}
+        <ScrollReveal
+          containerClassName="my-0"
+          textClassName="font-headline text-3xl sm:text-4xl"
+          align="left"
+          variant="primary"
+          baseRotation={0}
           threshold={0.15}
-          rootMargin="-80px"
-          textAlign="left"
-          className="font-headline text-3xl text-[#004449] sm:text-4xl"
-        />
+        >
+          About this property
+        </ScrollReveal>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_.9fr]">
         <article className="rounded-2xl border border-[#e8e3dc] bg-white p-6 shadow-sm md:p-8">
-          <h3 className="mb-3 font-headline text-2xl text-[#004449]">Comfortable Accommodation</h3>
-          <p className="text-sm leading-7 text-[#3f4849]">Wings Cottage in Ooty offers a villa with free WiFi, private check-in and check-out services, an outdoor fireplace, and room service. Each room includes a private bathroom and TV.</p>
-          <h3 className="mb-3 mt-7 font-headline text-2xl text-[#004449]">Convenient Facilities</h3>
-          <p className="text-sm leading-7 text-[#3f4849]">Guests can enjoy free on-site private parking, ensuring easy access to the property. The villa provides a relaxing environment with ample amenities for a comfortable stay.</p>
-          <h3 className="mb-3 mt-7 font-headline text-2xl text-[#004449]">Local Attractions</h3>
-          <p className="text-sm leading-7 text-[#3f4849]">Ooty Bus Station is a 15-minute walk away, while Ooty Railway Station lies 1.2 km from the property. Ooty Lake is 3.3 km distant, Ooty Botanical Gardens are 2.2 km nearby, and Doddabetta Peak is 9 km away.</p>
+          <ScrollReveal containerClassName="my-0 mb-3" textClassName="font-headline text-2xl" align="left" variant="primary" baseRotation={0} threshold={0.15}>
+            Comfortable Accommodation
+          </ScrollReveal>
+          <ScrollReveal
+            containerClassName="my-0"
+            textClassName="text-sm! font-normal! leading-7! text-[#3f4849]"
+            align="left"
+            baseRotation={0}
+            staggerDelay={0.012}
+            duration={0.5}
+            blurStrength={3}
+            threshold={0.15}
+          >
+            Wings Cottage in Ooty offers a villa with free WiFi, private check-in and check-out services, an outdoor fireplace, and room service. Each room includes a private bathroom and TV.
+          </ScrollReveal>
+
+          <ScrollReveal containerClassName="my-0 mb-3 mt-7" textClassName="font-headline text-2xl" align="left" variant="primary" baseRotation={0} threshold={0.15}>
+            Convenient Facilities
+          </ScrollReveal>
+          <ScrollReveal
+            containerClassName="my-0"
+            textClassName="text-sm! font-normal! leading-7! text-[#3f4849]"
+            align="left"
+            baseRotation={0}
+            staggerDelay={0.012}
+            duration={0.5}
+            blurStrength={3}
+            threshold={0.15}
+          >
+            Guests can enjoy free on-site private parking, ensuring easy access to the property. The villa provides a relaxing environment with ample amenities for a comfortable stay.
+          </ScrollReveal>
+
+          <ScrollReveal containerClassName="my-0 mb-3 mt-7" textClassName="font-headline text-2xl" align="left" variant="primary" baseRotation={0} threshold={0.15}>
+            Local Attractions
+          </ScrollReveal>
+          <ScrollReveal
+            containerClassName="my-0"
+            textClassName="text-sm! font-normal! leading-7! text-[#3f4849]"
+            align="left"
+            baseRotation={0}
+            staggerDelay={0.012}
+            duration={0.5}
+            blurStrength={3}
+            threshold={0.15}
+          >
+            Ooty Bus Station is a 15-minute walk away, while Ooty Railway Station lies 1.2 km from the property. Ooty Lake is 3.3 km distant, Ooty Botanical Gardens are 2.2 km nearby, and Doddabetta Peak is 9 km away.
+          </ScrollReveal>
           <p className="mt-5 text-xs italic text-[#6f797a]">Distance in property description is calculated using © OpenStreetMap.</p>
         </article>
 

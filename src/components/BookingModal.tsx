@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { VILLAS } from '../data/resortData';
-import { Villa } from '../types';
+import { ROOM_CATEGORIES, formatINR, CAMPFIRE_CHARGE } from '../data/roomsData';
+import { RoomCategory } from '../types';
 import { DatePickerPopover, toISO } from './DatePickerPopover';
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  preselectedVilla?: Villa | null;
+  preselectedRoom?: RoomCategory | null;
   presetCheckIn?: string;
   presetCheckOut?: string;
   presetGuests?: number;
@@ -15,13 +15,13 @@ interface BookingModalProps {
 export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
-  preselectedVilla,
+  preselectedRoom,
   presetCheckIn,
   presetCheckOut,
   presetGuests
 }) => {
-  const [selectedVillaId, setSelectedVillaId] = useState<string>(
-    preselectedVilla?.id || VILLAS[0].id
+  const [selectedRoomId, setSelectedRoomId] = useState<string>(
+    preselectedRoom?.id || ROOM_CATEGORIES[0].id
   );
   const [checkIn, setCheckIn] = useState('2026-09-10');
   const [checkOut, setCheckOut] = useState('2026-09-15');
@@ -38,17 +38,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   // Add-ons
   const [addons, setAddons] = useState({
-    airportTransfer: true,
-    privateChef: false,
-    spaPackage: true,
-    champagneArrival: true
+    stationTransfer: true,
+    candlelightDinner: false,
+    campfire: true,
+    welcomeHamper: true
   });
 
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      if (preselectedVilla) setSelectedVillaId(preselectedVilla.id);
+      if (preselectedRoom) setSelectedRoomId(preselectedRoom.id);
 
       const hasPreset = Boolean(presetCheckIn && presetCheckOut);
       if (presetCheckIn) setCheckIn(presetCheckIn);
@@ -99,7 +99,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   if (!isOpen) return null;
 
-  const selectedVilla = VILLAS.find((v) => v.id === selectedVillaId) || VILLAS[0];
+  const selectedRoom = ROOM_CATEGORIES.find((r) => r.id === selectedRoomId) || ROOM_CATEGORIES[0];
 
   // Calculate nights
   const calculateNights = () => {
@@ -111,13 +111,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   };
 
   const nights = calculateNights();
-  const subtotal = selectedVilla.pricePerNight * nights;
-  
+  const subtotal = selectedRoom.weekdayPrice * nights;
+
   let addonTotal = 0;
-  if (addons.airportTransfer) addonTotal += 150;
-  if (addons.privateChef) addonTotal += 400;
-  if (addons.spaPackage) addonTotal += 250;
-  if (addons.champagneArrival) addonTotal += 120;
+  if (addons.stationTransfer) addonTotal += 1500;
+  if (addons.candlelightDinner) addonTotal += 2000;
+  if (addons.campfire) addonTotal += CAMPFIRE_CHARGE;
+  if (addons.welcomeHamper) addonTotal += 800;
 
   const total = subtotal + addonTotal;
 
@@ -164,7 +164,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             </h3>
 
             <p className="text-sm text-[#3f4849] max-w-md mx-auto leading-relaxed">
-              Thank you, <strong className="text-[#004449]">{name || 'Valued Guest'}</strong>. Your reservation request for <strong className="text-[#004449]">{selectedVilla.name}</strong> ({checkIn} to {checkOut}) has been received. Our dedicated island butler team will send your complete itinerary to <strong className="text-[#004449]">{email || 'your email'}</strong> within 2 hours.
+              Thank you, <strong className="text-[#004449]">{name || 'Valued Guest'}</strong>. Your reservation request for <strong className="text-[#004449]">{selectedRoom.name}</strong> ({checkIn} to {checkOut}) has been received. Our Wings Resort team will send your complete itinerary to <strong className="text-[#004449]">{email || 'your email'}</strong> within 2 hours.
             </p>
 
             <div className="p-6 bg-[#f5f3f0] rounded-2xl max-w-md mx-auto border border-[#e4e2df] text-left text-xs space-y-2">
@@ -174,7 +174,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-[#a93721] font-semibold">TOTAL ESTIMATE:</span>
-                <span className="font-bold text-[#004449]">${total} USD</span>
+                <span className="font-bold text-[#004449]">{formatINR(total)}</span>
               </div>
             </div>
 
@@ -188,19 +188,19 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         ) : (
           /* Booking Form */
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 overflow-y-auto space-y-6">
-            {/* Villa Selection */}
+            {/* Accommodation Selection */}
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
                 Select Accommodation
               </label>
               <select
-                value={selectedVillaId}
-                onChange={(e) => setSelectedVillaId(e.target.value)}
+                value={selectedRoomId}
+                onChange={(e) => setSelectedRoomId(e.target.value)}
                 className="w-full p-3 rounded-full bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
               >
-                {VILLAS.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name} (${v.pricePerNight}/night)
+                {ROOM_CATEGORIES.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name} ({formatINR(r.weekdayPrice)}/night)
                   </option>
                 ))}
               </select>
@@ -288,41 +288,41 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label className="flex items-center justify-between p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] cursor-pointer hover:bg-[#efeeeb] transition-colors">
-                  <span className="text-xs font-medium text-[#1b1c1a]">Private Helipad/Airport Transfer (+$150)</span>
+                  <span className="text-xs font-medium text-[#1b1c1a]">Railway/Bus Stand Pickup &amp; Drop (+{formatINR(1500)})</span>
                   <input
                     type="checkbox"
-                    checked={addons.airportTransfer}
-                    onChange={(e) => setAddons({ ...addons, airportTransfer: e.target.checked })}
+                    checked={addons.stationTransfer}
+                    onChange={(e) => setAddons({ ...addons, stationTransfer: e.target.checked })}
                     className="accent-[#004449] w-4 h-4"
                   />
                 </label>
 
                 <label className="flex items-center justify-between p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] cursor-pointer hover:bg-[#efeeeb] transition-colors">
-                  <span className="text-xs font-medium text-[#1b1c1a]">In-Villa Private Chef Evening (+$400)</span>
+                  <span className="text-xs font-medium text-[#1b1c1a]">Candlelight Private Dinner Setup (+{formatINR(2000)})</span>
                   <input
                     type="checkbox"
-                    checked={addons.privateChef}
-                    onChange={(e) => setAddons({ ...addons, privateChef: e.target.checked })}
+                    checked={addons.candlelightDinner}
+                    onChange={(e) => setAddons({ ...addons, candlelightDinner: e.target.checked })}
                     className="accent-[#004449] w-4 h-4"
                   />
                 </label>
 
                 <label className="flex items-center justify-between p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] cursor-pointer hover:bg-[#efeeeb] transition-colors">
-                  <span className="text-xs font-medium text-[#1b1c1a]">Full Botanical Spa Package (+$250)</span>
+                  <span className="text-xs font-medium text-[#1b1c1a]">Bonfire / Campfire Evening (+{formatINR(CAMPFIRE_CHARGE)})</span>
                   <input
                     type="checkbox"
-                    checked={addons.spaPackage}
-                    onChange={(e) => setAddons({ ...addons, spaPackage: e.target.checked })}
+                    checked={addons.campfire}
+                    onChange={(e) => setAddons({ ...addons, campfire: e.target.checked })}
                     className="accent-[#004449] w-4 h-4"
                   />
                 </label>
 
                 <label className="flex items-center justify-between p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] cursor-pointer hover:bg-[#efeeeb] transition-colors">
-                  <span className="text-xs font-medium text-[#1b1c1a]">Chilled Vintage Champagne Arrival (+$120)</span>
+                  <span className="text-xs font-medium text-[#1b1c1a]">Welcome Fruit Basket &amp; Local Snacks (+{formatINR(800)})</span>
                   <input
                     type="checkbox"
-                    checked={addons.champagneArrival}
-                    onChange={(e) => setAddons({ ...addons, champagneArrival: e.target.checked })}
+                    checked={addons.welcomeHamper}
+                    onChange={(e) => setAddons({ ...addons, welcomeHamper: e.target.checked })}
                     className="accent-[#004449] w-4 h-4"
                   />
                 </label>
@@ -337,7 +337,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Eleanor Vance"
+                  placeholder="e.g. Priya Sharma"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
@@ -351,7 +351,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </label>
                 <input
                   type="email"
-                  placeholder="e.g. eleanor@example.com"
+                  placeholder="e.g. priya@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
@@ -376,18 +376,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             {/* Price Summary Breakdown */}
             <div className="p-4 rounded-2xl bg-[#004449]/5 border border-[#004449]/10 space-y-2 text-xs">
               <div className="flex justify-between text-[#3f4849]">
-                <span>{selectedVilla.name} ({nights} nights @ ${selectedVilla.pricePerNight})</span>
-                <span>${subtotal}</span>
+                <span>{selectedRoom.name} ({nights} nights @ {formatINR(selectedRoom.weekdayPrice)})</span>
+                <span>{formatINR(subtotal)}</span>
               </div>
               {addonTotal > 0 && (
                 <div className="flex justify-between text-[#3f4849]">
                   <span>Concierge Add-ons</span>
-                  <span>+${addonTotal}</span>
+                  <span>+{formatINR(addonTotal)}</span>
                 </div>
               )}
               <div className="border-t border-[#004449]/10 pt-2 flex justify-between font-bold text-sm text-[#004449]">
                 <span>Estimated Total</span>
-                <span>${total} USD</span>
+                <span>{formatINR(total)}</span>
               </div>
             </div>
 

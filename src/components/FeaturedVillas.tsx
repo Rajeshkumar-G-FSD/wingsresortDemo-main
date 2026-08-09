@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { VILLAS } from '../data/resortData';
-import { Villa } from '../types';
+import { ROOM_CATEGORIES, formatINR } from '../data/roomsData';
+import { RoomCategory } from '../types';
 import { DatePickerPopover, toISO } from './DatePickerPopover';
 import SplitText from './SplitText';
 
@@ -10,22 +10,25 @@ const addDays = (iso: string, days: number) => {
   return toISO(d);
 };
 
+// Two extra bookable room categories to round out the static Wings Resort photo grid below.
+const FEATURED_EXTRA_ROOM_IDS = ['2bhk-villa', 'wood-house'];
+const featuredExtraRooms = ROOM_CATEGORIES.filter((r) => FEATURED_EXTRA_ROOM_IDS.includes(r.id));
+
 interface FeaturedVillasProps {
-  onSelectVilla: (villa: Villa) => void;
-  onBookVillaDirect: (villa: Villa) => void;
+  onSelectRoom: (room: RoomCategory) => void;
+  onBookRoomDirect: (room: RoomCategory) => void;
   onCheckAvailability: (checkIn: string, checkOut: string, guests: number) => void;
   onViewAllRooms: () => void;
   openCheckInTrigger?: number;
 }
 
 export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
-  onSelectVilla,
-  onBookVillaDirect,
+  onSelectRoom,
+  onBookRoomDirect,
   onCheckAvailability,
   onViewAllRooms,
   openCheckInTrigger
 }) => {
-  const [activeCategory, setActiveCategory] = useState<string>('All');
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(2);
@@ -85,12 +88,6 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
     const timer = window.setTimeout(() => observer.observe(element), 1600);
     return () => { window.clearTimeout(timer); observer.disconnect(); };
   }, []);
-
-  const categories = ['All', 'Oceanfront', 'Garden', 'Penthouse', 'Private Island'];
-
-  const filteredVillas = activeCategory === 'All'
-    ? VILLAS
-    : VILLAS.filter((v) => v.category === activeCategory);
 
   return (
     <section id="villas" className="relative py-12 md:py-14 bg-[#004449] text-white px-5 md:px-12 z-0">
@@ -242,84 +239,79 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
               <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
             </div>
           </article>
-          {filteredVillas.slice(0, 2).map((villa) => (
+          {featuredExtraRooms.map((room) => (
             <div
-              key={villa.id}
+              key={room.id}
               className="group overflow-hidden transition-all duration-300 flex flex-col"
             >
               {/* Image Container */}
-              <div 
-                onClick={() => onSelectVilla(villa)}
+              <div
+                onClick={() => onSelectRoom(room)}
                 className="relative w-full aspect-[1.22/1] overflow-hidden cursor-pointer rounded-sm"
               >
                 <div className="absolute inset-0 bg-[#004449]/20 group-hover:bg-transparent transition-colors duration-500 z-10" />
                 <img
-                  src={villa.imageUrl}
-                  alt={villa.name}
+                  src={room.heroImage}
+                  alt={room.name}
                   className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute top-2 right-2 z-20 hidden">
                   <span className="bg-[#fbf9f6]/90 backdrop-blur-md text-[#004449] text-[10px] font-bold uppercase tracking-wider py-1.5 px-3.5 rounded-full shadow">
-                    {villa.badge}
+                    {room.badge}
                   </span>
-                </div>
-                <div className="absolute bottom-2 left-2 z-20 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-full text-white text-[9px] font-medium flex items-center gap-1 hidden">
-                  <span className="material-symbols-outlined text-amber-300 text-sm">star</span>
-                  <span>{villa.rating}</span>
-                  <span className="text-white/60">({villa.reviewsCount})</span>
                 </div>
               </div>
 
               {/* Card Body */}
               <div className="pt-3 flex flex-col flex-grow text-center">
                 <div className="flex justify-center items-start mb-1">
-                  <h3 
-                    onClick={() => onSelectVilla(villa)}
+                  <h3
+                    onClick={() => onSelectRoom(room)}
                     className="text-[10px] text-white font-bold uppercase tracking-[.08em] cursor-pointer hover:text-[#8fd2d8] transition-colors"
                   >
-                    {villa.name}
+                    {room.name}
                   </h3>
                 </div>
 
                 <p className="text-[8px] font-semibold text-[#8fd2d8] uppercase tracking-wider">
-                  {villa.location}
+                  Wings Resort
                 </p>
 
                 <p className="hidden text-xs text-white/70 line-clamp-2 mb-6 font-body leading-relaxed">
-                  {villa.description}
+                  {room.description}
                 </p>
 
-                {/* Villa Specs */}
+                {/* Room Specs */}
                 <div className="hidden flex items-center gap-4 text-xs text-white/80 border-t border-white/10 pt-4 mb-6">
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-base">king_bed</span> {villa.bedrooms} Beds
+                    <span className="material-symbols-outlined text-base">king_bed</span> {room.bedType}
                   </span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-base">group</span> Up to {villa.guests}
+                    <span className="material-symbols-outlined text-base">group</span> Up to {room.maxAdults}
                   </span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-base">square_foot</span> {villa.sqft} sqft
+                    <span className="material-symbols-outlined text-base">square_foot</span> {room.sizeSqft} sqft
                   </span>
                 </div>
 
                 {/* Footer with Price & Actions */}
                 <div className="hidden mt-auto flex items-center justify-between gap-3 pt-2">
                   <div>
-                    <span className="text-xl font-bold text-white">${villa.pricePerNight}</span>
+                    <span className="text-xl font-bold text-white">{formatINR(room.weekdayPrice)}</span>
                     <span className="text-xs text-white/60"> / night</span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => onSelectVilla(villa)}
+                      onClick={() => onSelectRoom(room)}
                       className="px-4 py-2 rounded-full border border-white/30 text-white text-xs font-semibold hover:bg-white/10 transition-colors"
                     >
                       Details
                     </button>
                     <button
-                      onClick={() => onBookVillaDirect(villa)}
+                      onClick={() => onBookRoomDirect(room)}
                       className="px-4 py-2 rounded-full coral-gradient text-white text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity shadow"
                     >
                       Reserve

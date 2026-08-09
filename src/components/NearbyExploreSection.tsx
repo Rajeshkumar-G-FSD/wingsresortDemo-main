@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { getDirectionsUrl } from '../utils/directions';
-import SplitText from './SplitText';
+import { TypingText } from './lightswind/typing-text';
 import BlurText from './BlurText';
 
 interface NearbyItem {
@@ -87,20 +87,18 @@ export const NearbyExploreSection: React.FC = () => {
       <div className="mx-auto max-w-[900px]">
         <div className="mb-8 text-center">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[.2em] text-[#f06c52]">Around the resort</p>
-          <SplitText
-            text="Know Your Stay, Inside Out"
-            tag="h2"
-            splitType="words"
-            delay={40}
-            duration={0.9}
-            ease="power3.out"
-            from={{ opacity: 0, y: 30 }}
-            to={{ opacity: 1, y: 0 }}
-            threshold={0.15}
-            rootMargin="-80px"
-            textAlign="center"
-            className="font-headline text-3xl text-[#004449] sm:text-4xl"
-          />
+          <TypingText
+            as="h2"
+            duration={1.4}
+            fontSize="text-3xl sm:text-4xl"
+            fontWeight="font-headline font-medium"
+            color="text-[#004449]"
+            letterSpacing="tracking-normal"
+            align="center"
+            className="w-full leading-tight"
+          >
+            Know Your Stay, Inside Out
+          </TypingText>
           <BlurText
             text="Everything a guest needs to plan their trip — dining, shopping, and how to get around Ooty from Wings Resort."
             animateBy="words"
@@ -157,7 +155,19 @@ export const NearbyExploreSection: React.FC = () => {
                           <span className="material-symbols-outlined text-lg">directions</span>
                         </span>
                         <span className="flex-1">
-                          <span className="block text-sm font-semibold text-[#1b1c1a]">{item.name}</span>
+                          <TypingText
+                            as="span"
+                            duration={0.4}
+                            threshold={0.3}
+                            fontSize="text-sm"
+                            fontWeight="font-semibold"
+                            color="text-[#1b1c1a]"
+                            letterSpacing="tracking-normal"
+                            align="left"
+                            className="block! w-full"
+                          >
+                            {item.name}
+                          </TypingText>
                           {item.meta && <span className="text-[11px] uppercase tracking-wide text-[#8a9192]">{item.meta}</span>}
                         </span>
                         <span className="shrink-0 text-sm font-semibold text-[#3f4849]">{item.distance}</span>

@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Villa } from '../types';
+import { RoomCategory } from '../types';
+import { formatINR } from '../data/roomsData';
 
 interface VillaModalProps {
-  villa: Villa | null;
+  room: RoomCategory | null;
   onClose: () => void;
-  onBookDirect: (villa: Villa) => void;
+  onBookDirect: (room: RoomCategory) => void;
 }
 
-export const VillaModal: React.FC<VillaModalProps> = ({ villa, onClose, onBookDirect }) => {
-  if (!villa) return null;
+export const VillaModal: React.FC<VillaModalProps> = ({ room, onClose, onBookDirect }) => {
+  if (!room) return null;
 
-  const [activeImg, setActiveImg] = useState(villa.imageUrl);
+  const [activeImg, setActiveImg] = useState(room.heroImage);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-black/60 backdrop-blur-sm animate-fadeIn overflow-y-auto">
@@ -19,9 +20,9 @@ export const VillaModal: React.FC<VillaModalProps> = ({ villa, onClose, onBookDi
         <div className="sticky top-0 z-20 bg-[#fbf9f6]/95 backdrop-blur-md px-6 py-4 border-b border-[#e4e2df] flex items-center justify-between">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#a93721]">
-              {villa.category} • {villa.location}
+              {room.badge} • Wings Resort
             </span>
-            <h2 className="font-headline text-2xl text-[#004449] font-bold">{villa.name}</h2>
+            <h2 className="font-headline text-2xl text-[#004449] font-bold">{room.name}</h2>
           </div>
           <button
             onClick={onClose}
@@ -36,11 +37,11 @@ export const VillaModal: React.FC<VillaModalProps> = ({ villa, onClose, onBookDi
           {/* Main Photo & Gallery Thumbnails */}
           <div>
             <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden shadow-md mb-4">
-              <img src={activeImg} alt={villa.name} className="w-full h-full object-cover" />
+              <img src={activeImg} alt={room.name} className="w-full h-full object-cover" />
             </div>
-            {villa.gallery && villa.gallery.length > 0 && (
+            {room.gallery && room.gallery.length > 0 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
-                {[villa.imageUrl, ...villa.gallery].map((img, i) => (
+                {[room.heroImage, ...room.gallery].map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveImg(img)}
@@ -59,33 +60,33 @@ export const VillaModal: React.FC<VillaModalProps> = ({ villa, onClose, onBookDi
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-[#f5f3f0] border border-[#e4e2df]">
             <div className="text-center">
               <p className="text-[10px] uppercase font-bold text-[#a93721]">Guests</p>
-              <p className="text-base font-bold text-[#004449]">{villa.guests} Persons</p>
+              <p className="text-base font-bold text-[#004449]">{room.maxAdults} Persons</p>
             </div>
             <div className="text-center">
-              <p className="text-[10px] uppercase font-bold text-[#a93721]">Bedrooms</p>
-              <p className="text-base font-bold text-[#004449]">{villa.bedrooms} Suites</p>
+              <p className="text-[10px] uppercase font-bold text-[#a93721]">Bed Type</p>
+              <p className="text-base font-bold text-[#004449]">{room.bedType}</p>
             </div>
             <div className="text-center">
               <p className="text-[10px] uppercase font-bold text-[#a93721]">Bathrooms</p>
-              <p className="text-base font-bold text-[#004449]">{villa.bathrooms} En-Suite</p>
+              <p className="text-base font-bold text-[#004449]">{room.bathrooms} Attached</p>
             </div>
             <div className="text-center">
               <p className="text-[10px] uppercase font-bold text-[#a93721]">Size</p>
-              <p className="text-base font-bold text-[#004449]">{villa.sqft} sq ft</p>
+              <p className="text-base font-bold text-[#004449]">{room.sizeSqft} sq ft</p>
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <h3 className="font-headline text-xl text-[#004449] font-semibold mb-2">About the Villa</h3>
-            <p className="text-sm text-[#3f4849] leading-relaxed">{villa.description}</p>
+            <h3 className="font-headline text-xl text-[#004449] font-semibold mb-2">About the Room</h3>
+            <p className="text-sm text-[#3f4849] leading-relaxed">{room.description}</p>
           </div>
 
           {/* Included Amenities */}
           <div>
-            <h3 className="font-headline text-xl text-[#004449] font-semibold mb-3">Included Luxury Amenities</h3>
+            <h3 className="font-headline text-xl text-[#004449] font-semibold mb-3">Included Amenities</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {villa.amenities.map((amenity, idx) => (
+              {room.amenities.map((amenity, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-xs font-medium text-[#1b1c1a]">
                   <span className="material-symbols-outlined text-[#004449] text-base">check_circle</span>
                   <span>{amenity}</span>
@@ -98,18 +99,18 @@ export const VillaModal: React.FC<VillaModalProps> = ({ villa, onClose, onBookDi
         {/* Modal Footer CTA */}
         <div className="sticky bottom-0 bg-[#fbf9f6] p-6 border-t border-[#e4e2df] flex items-center justify-between gap-4">
           <div>
-            <span className="text-2xl font-bold text-[#004449]">${villa.pricePerNight}</span>
-            <span className="text-xs text-[#3f4849]"> / night</span>
+            <span className="text-2xl font-bold text-[#004449]">{formatINR(room.weekdayPrice)}</span>
+            <span className="text-xs text-[#3f4849]"> / night onwards</span>
           </div>
 
           <button
             onClick={() => {
               onClose();
-              onBookDirect(villa);
+              onBookDirect(room);
             }}
             className="px-8 py-3.5 rounded-full coral-gradient text-white text-xs font-semibold uppercase tracking-wider shadow-lg hover:opacity-95"
           >
-            Reserve Villa Now
+            Reserve Now
           </button>
         </div>
       </div>
