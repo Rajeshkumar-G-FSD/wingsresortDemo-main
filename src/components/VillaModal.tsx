@@ -15,18 +15,18 @@ export const VillaModal: React.FC<VillaModalProps> = ({ room, onClose, onBookDir
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-black/60 backdrop-blur-sm animate-fadeIn overflow-y-auto">
-      <div className="relative w-full max-w-4xl bg-[#fbf9f6] rounded-3xl overflow-hidden shadow-2xl border border-[#e4e2df] max-h-[90vh] flex flex-col my-auto">
+      <div className="relative w-full max-w-4xl bg-[#4A2E1C] rounded-3xl overflow-hidden shadow-2xl border border-[#7A5238] max-h-[90vh] flex flex-col my-auto">
         {/* Header Bar */}
-        <div className="sticky top-0 z-20 bg-[#fbf9f6]/95 backdrop-blur-md px-6 py-4 border-b border-[#e4e2df] flex items-center justify-between">
+        <div className="sticky top-0 z-20 bg-[#4A2E1C]/95 backdrop-blur-md px-6 py-4 border-b border-[#7A5238] flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#a93721]">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#F0801A]">
               {room.badge} • Wings Resort
             </span>
-            <h2 className="font-headline text-2xl text-[#004449] font-bold">{room.name}</h2>
+            <h2 className="font-headline text-2xl text-[#F5F0E8] font-bold">{room.name}</h2>
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-[#004449]/10 text-[#004449] flex items-center justify-center hover:bg-[#004449] hover:text-white transition-colors"
+            className="w-10 h-10 rounded-full bg-[#F0801A]/10 text-[#F0801A] flex items-center justify-center hover:bg-[#F0801A] hover:text-[#2B1810] transition-colors"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
@@ -46,7 +46,7 @@ export const VillaModal: React.FC<VillaModalProps> = ({ room, onClose, onBookDir
                     key={i}
                     onClick={() => setActiveImg(img)}
                     className={`relative w-20 h-14 rounded-lg overflow-hidden border-2 shrink-0 ${
-                      activeImg === img ? 'border-[#004449]' : 'border-transparent opacity-70'
+                      activeImg === img ? 'border-[#F0801A]' : 'border-transparent opacity-70'
                     }`}
                   >
                     <img src={img} alt="Gallery" className="w-full h-full object-cover" />
@@ -57,38 +57,38 @@ export const VillaModal: React.FC<VillaModalProps> = ({ room, onClose, onBookDir
           </div>
 
           {/* Key Specs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-[#f5f3f0] border border-[#e4e2df]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-[#6B4530] border border-[#7A5238]">
             <div className="text-center">
-              <p className="text-[10px] uppercase font-bold text-[#a93721]">Guests</p>
-              <p className="text-base font-bold text-[#004449]">{room.maxAdults} Persons</p>
+              <p className="text-[10px] uppercase font-bold text-[#F0801A]">Guests</p>
+              <p className="text-base font-bold text-[#F5F0E8]">{room.maxAdults} Persons</p>
             </div>
             <div className="text-center">
-              <p className="text-[10px] uppercase font-bold text-[#a93721]">Bed Type</p>
-              <p className="text-base font-bold text-[#004449]">{room.bedType}</p>
+              <p className="text-[10px] uppercase font-bold text-[#F0801A]">Bed Type</p>
+              <p className="text-base font-bold text-[#F5F0E8]">{room.bedType}</p>
             </div>
             <div className="text-center">
-              <p className="text-[10px] uppercase font-bold text-[#a93721]">Bathrooms</p>
-              <p className="text-base font-bold text-[#004449]">{room.bathrooms} Attached</p>
+              <p className="text-[10px] uppercase font-bold text-[#F0801A]">Bathrooms</p>
+              <p className="text-base font-bold text-[#F5F0E8]">{room.bathrooms} Attached</p>
             </div>
             <div className="text-center">
-              <p className="text-[10px] uppercase font-bold text-[#a93721]">Size</p>
-              <p className="text-base font-bold text-[#004449]">{room.sizeSqft} sq ft</p>
+              <p className="text-[10px] uppercase font-bold text-[#F0801A]">Size</p>
+              <p className="text-base font-bold text-[#F5F0E8]">{room.sizeSqft} sq ft</p>
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <h3 className="font-headline text-xl text-[#004449] font-semibold mb-2">About the Room</h3>
-            <p className="text-sm text-[#3f4849] leading-relaxed">{room.description}</p>
+            <h3 className="font-headline text-xl text-[#F5F0E8] font-semibold mb-2">About the Room</h3>
+            <p className="text-sm text-[#D8CFC4] leading-relaxed">{room.description}</p>
           </div>
 
           {/* Included Amenities */}
           <div>
-            <h3 className="font-headline text-xl text-[#004449] font-semibold mb-3">Included Amenities</h3>
+            <h3 className="font-headline text-xl text-[#F5F0E8] font-semibold mb-3">Included Amenities</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {room.amenities.map((amenity, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-xs font-medium text-[#1b1c1a]">
-                  <span className="material-symbols-outlined text-[#004449] text-base">check_circle</span>
+                <div key={idx} className="flex items-center gap-2 text-xs font-medium text-[#F5F0E8]">
+                  <span className="material-symbols-outlined text-[#F5F0E8] text-base">check_circle</span>
                   <span>{amenity}</span>
                 </div>
               ))}
@@ -97,10 +97,10 @@ export const VillaModal: React.FC<VillaModalProps> = ({ room, onClose, onBookDir
         </div>
 
         {/* Modal Footer CTA */}
-        <div className="sticky bottom-0 bg-[#fbf9f6] p-6 border-t border-[#e4e2df] flex items-center justify-between gap-4">
+        <div className="sticky bottom-0 bg-[#4A2E1C] p-6 border-t border-[#7A5238] flex items-center justify-between gap-4">
           <div>
-            <span className="text-2xl font-bold text-[#004449]">{formatINR(room.weekdayPrice)}</span>
-            <span className="text-xs text-[#3f4849]"> / night onwards</span>
+            <span className="text-2xl font-bold text-[#F5F0E8]">{formatINR(room.weekdayPrice)}</span>
+            <span className="text-xs text-[#D8CFC4]"> / night onwards</span>
           </div>
 
           <button

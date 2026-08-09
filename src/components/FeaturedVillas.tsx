@@ -90,11 +90,11 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   }, []);
 
   return (
-    <section id="villas" className="relative py-12 md:py-14 bg-[#004449] text-white px-5 md:px-12 z-0">
+    <section id="villas" className="relative py-12 md:py-14 bg-[#4A2E1C] text-white px-5 md:px-12 z-0">
       <div className="max-w-[1280px] mx-auto">
         <div className="mb-8">
           <div className="mb-4 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-[.22em] text-[#8fd2d8]">Find your perfect stay</p>
+            <p className="text-[10px] font-bold uppercase tracking-[.22em] text-[#D8CFC4]">Find your perfect stay</p>
             <SplitText
               text="Explore our properties"
               tag="h2"
@@ -112,7 +112,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
           </div>
           <form
             ref={formRef}
-            className="mx-auto grid max-w-[940px] grid-cols-1 gap-2 rounded-2xl bg-white p-2 shadow-xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]"
+            className="mx-auto grid max-w-[940px] grid-cols-1 gap-2 rounded-2xl bg-[#6B4530] p-2 shadow-xl sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]"
             onSubmit={(event) => {
               event.preventDefault();
               onCheckAvailability(checkIn, checkOut, guests);
@@ -152,20 +152,20 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
                   setCheckInOpen(false);
                   setCheckOutOpen(false);
                 }}
-                className="group flex w-full min-w-0 items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-[#f5f3f0]"
+                className="group flex w-full min-w-0 items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-[#7A5238]"
               >
-                <span className="material-symbols-outlined text-[#f06c52]">group</span>
+                <span className="material-symbols-outlined text-[#F0801A]">group</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[9px] font-bold uppercase tracking-[.14em] text-[#6f797a]">Guests</span>
-                  <span className="block text-sm font-semibold text-[#004449]">{guests} guest{guests > 1 ? 's' : ''}</span>
+                  <span className="block text-[9px] font-bold uppercase tracking-[.14em] text-[#D8CFC4]">Guests</span>
+                  <span className="block text-sm font-semibold text-[#F5F0E8]">{guests} guest{guests > 1 ? 's' : ''}</span>
                 </span>
-                <span className="material-symbols-outlined text-base text-[#004449]">
+                <span className="material-symbols-outlined text-base text-[#F5F0E8]">
                   {guestsOpen ? 'expand_less' : 'keyboard_arrow_down'}
                 </span>
               </button>
 
               {guestsOpen && (
-                <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-40 rounded-3xl bg-white p-2 shadow-2xl border border-[#e4e2df] animate-fadeIn">
+                <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-40 rounded-3xl bg-[#6B4530] p-2 shadow-2xl border border-[#7A5238] animate-fadeIn">
                   {[1, 2, 3, 4, 5, 6].map((n) => (
                     <button
                       key={n}
@@ -175,7 +175,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
                         setGuestsOpen(false);
                       }}
                       className={`w-full flex items-center justify-between px-4 py-2.5 rounded-full text-xs font-semibold transition-colors ${
-                        guests === n ? 'coral-gradient text-white' : 'text-[#1b1c1a] hover:bg-[#f5f3f0]'
+                        guests === n ? 'coral-gradient text-[#2B1810]' : 'text-[#F5F0E8] hover:bg-[#7A5238]'
                       }`}
                     >
                       <span>{n}{n === 6 ? '+' : ''} Guest{n > 1 ? 's' : ''}</span>
@@ -186,7 +186,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
               )}
             </div>
 
-            <button type="submit" className="flex items-center justify-center gap-2 rounded-xl bg-[#f06c52] px-6 py-4 text-[10px] font-bold uppercase tracking-[.12em] text-white transition hover:bg-[#de573e]">
+            <button type="submit" className="flex items-center justify-center gap-2 rounded-xl bg-[#F0801A] px-6 py-4 text-[10px] font-bold uppercase tracking-[.12em] text-[#2B1810] transition hover:bg-[#F5A23A]">
               Check availability <span className="material-symbols-outlined text-base">arrow_forward</span>
             </button>
           </form>
@@ -200,7 +200,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
             </div>
             <div className="flex flex-grow flex-col pt-3 text-center">
               <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">A-Type Bedroom</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
             </div>
           </article>
           <article className="group flex flex-col overflow-hidden" aria-label="Three Bedroom Residence">
@@ -209,7 +209,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
             </div>
             <div className="flex flex-grow flex-col pt-3 text-center">
               <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Three Bedroom Residence</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
             </div>
           </article>
           <article className="group flex flex-col overflow-hidden" aria-label="Deluxe Three Room Suite">
@@ -218,7 +218,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
             </div>
             <div className="flex flex-grow flex-col pt-3 text-center">
               <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Deluxe Three Room Suite</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
             </div>
           </article>
           <article className="group flex flex-col overflow-hidden" aria-label="Couples Bed Room">
@@ -227,7 +227,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
             </div>
             <div className="flex flex-grow flex-col pt-3 text-center">
               <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Couples Bed Room</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
             </div>
           </article>
           <article className="group flex flex-col overflow-hidden" aria-label="Family Bed Room">
@@ -236,7 +236,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
             </div>
             <div className="flex flex-grow flex-col pt-3 text-center">
               <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-white">Family Bed Room</h3>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#8fd2d8]">Wings Resort</p>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#D8CFC4]">Wings Resort</p>
             </div>
           </article>
           {featuredExtraRooms.map((room) => (
@@ -249,14 +249,14 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
                 onClick={() => onSelectRoom(room)}
                 className="relative w-full aspect-[1.22/1] overflow-hidden cursor-pointer rounded-sm"
               >
-                <div className="absolute inset-0 bg-[#004449]/20 group-hover:bg-transparent transition-colors duration-500 z-10" />
+                <div className="absolute inset-0 bg-[#4A2E1C]/30 group-hover:bg-transparent transition-colors duration-500 z-10" />
                 <img
                   src={room.heroImage}
                   alt={room.name}
                   className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute top-2 right-2 z-20 hidden">
-                  <span className="bg-[#fbf9f6]/90 backdrop-blur-md text-[#004449] text-[10px] font-bold uppercase tracking-wider py-1.5 px-3.5 rounded-full shadow">
+                  <span className="bg-[#6B4530]/90 backdrop-blur-md text-[#F0801A] text-[10px] font-bold uppercase tracking-wider py-1.5 px-3.5 rounded-full shadow">
                     {room.badge}
                   </span>
                 </div>
@@ -267,13 +267,13 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
                 <div className="flex justify-center items-start mb-1">
                   <h3
                     onClick={() => onSelectRoom(room)}
-                    className="text-[10px] text-white font-bold uppercase tracking-[.08em] cursor-pointer hover:text-[#8fd2d8] transition-colors"
+                    className="text-[10px] text-[#F5F0E8] font-bold uppercase tracking-[.08em] cursor-pointer hover:text-[#F0801A] transition-colors"
                   >
                     {room.name}
                   </h3>
                 </div>
 
-                <p className="text-[8px] font-semibold text-[#8fd2d8] uppercase tracking-wider">
+                <p className="text-[8px] font-semibold text-[#D8CFC4] uppercase tracking-wider">
                   Wings Resort
                 </p>
 
@@ -299,7 +299,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
                 {/* Footer with Price & Actions */}
                 <div className="hidden mt-auto flex items-center justify-between gap-3 pt-2">
                   <div>
-                    <span className="text-xl font-bold text-white">{formatINR(room.weekdayPrice)}</span>
+                    <span className="text-xl font-bold text-[#F0801A]">{formatINR(room.weekdayPrice)}</span>
                     <span className="text-xs text-white/60"> / night</span>
                   </div>
 
@@ -312,7 +312,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
                     </button>
                     <button
                       onClick={() => onBookRoomDirect(room)}
-                      className="px-4 py-2 rounded-full coral-gradient text-white text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity shadow"
+                      className="px-4 py-2 rounded-full coral-gradient text-[#2B1810] text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity shadow"
                     >
                       Reserve
                     </button>
@@ -327,7 +327,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
         <div className="mt-6 text-center">
           <button
             onClick={onViewAllRooms}
-            className="inline-flex items-center justify-center px-5 py-2 rounded-full border border-[#8fd2d8] text-[#8fd2d8] hover:bg-[#8fd2d8] hover:text-[#004449] transition-all duration-300 text-[9px] font-semibold uppercase tracking-widest"
+            className="inline-flex items-center justify-center px-5 py-2 rounded-full border border-[#F0801A] text-[#F0801A] hover:bg-[#F0801A] hover:text-[#2B1810] transition-all duration-300 text-[9px] font-semibold uppercase tracking-widest"
           >
             Explore All Accommodations
             <span className="material-symbols-outlined ml-2 text-lg">arrow_forward</span>

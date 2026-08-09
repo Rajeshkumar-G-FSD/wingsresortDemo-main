@@ -103,7 +103,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
   };
 
   return (
-    <div className="relative bg-[#fbf9f6] text-[#1b1c1a] overflow-hidden">
+    <div className="relative bg-[#4A2E1C] text-[#F5F0E8] overflow-hidden">
       <section
         id="hero"
         className="hero-slideshow relative z-10 overflow-hidden min-h-[600px] sm:min-h-[640px] lg:min-h-[700px] xl:min-h-[760px] flex items-center"
@@ -125,8 +125,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
         ))}
 
         {/* Legibility scrim: strong on the left where the text sits, easing off to the right */}
-        <div className="absolute inset-0 z-[2] pointer-events-none bg-gradient-to-r from-[#00201f]/85 via-[#00201f]/45 to-[#00201f]/10 lg:from-[#00201f]/88 lg:via-[#00201f]/40 lg:to-transparent" />
-        <div className="absolute inset-0 z-[2] pointer-events-none bg-gradient-to-t from-[#00201f]/55 via-transparent to-transparent" />
+        <div className="absolute inset-0 z-[2] pointer-events-none bg-gradient-to-r from-[#4A2E1C]/90 via-[#4A2E1C]/50 to-[#4A2E1C]/10 lg:from-[#4A2E1C]/92 lg:via-[#4A2E1C]/45 lg:to-transparent" />
+        <div className="absolute inset-0 z-[2] pointer-events-none bg-gradient-to-t from-[#4A2E1C]/60 via-transparent to-transparent" />
 
         {/* Prev / Next arrows */}
         <button
@@ -159,7 +159,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
         {/* Bottom sweeping curve, matching the cream page background */}
         <div className="absolute -bottom-1 -left-1 -right-1 h-16 sm:h-20 lg:h-28 pointer-events-none z-10">
           <svg
-            className="w-full h-full fill-[#fbf9f6]"
+            className="w-full h-full fill-[#4A2E1C]"
             viewBox="0 0 1000 120"
             preserveAspectRatio="none"
           >
@@ -184,7 +184,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
                 threshold={0.1}
                 rootMargin="0px"
                 textAlign="left"
-                className="text-[clamp(48px,5vw,66px)] font-bold text-[#fbf9f6]"
+                className="text-[clamp(48px,5vw,66px)] font-bold text-white"
               />
               <br />
               <SplitText
@@ -199,7 +199,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
                 threshold={0.1}
                 rootMargin="0px"
                 textAlign="left"
-                className="text-[clamp(48px,5vw,66px)] font-normal italic text-[#fbf9f6]"
+                className="text-[clamp(48px,5vw,66px)] font-normal italic text-[#F0801A]"
               />
             </h1>
 
@@ -223,10 +223,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
 
           {/* OUR SERVICES Label with Coral Palm Icon */}
           <div className="flex items-center justify-center lg:justify-start gap-2 mb-6 lg:ml-[25%]">
-            <span className="text-[#f06c52] text-xs font-bold uppercase tracking-[0.25em]">
+            <span className="text-[#F0801A] text-xs font-bold uppercase tracking-[0.25em]">
               OUR SERVICES
             </span>
-            <span className="text-[#f06c52] text-base">🌴</span>
+            <span className="text-[#F0801A] text-base">🌴</span>
           </div>
 
           {/* Mobile/Tablet-only: full-bleed horizontal snap-scroll service carousel */}
@@ -247,7 +247,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
                     alt={service.title}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-active:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#00201f]/92 via-[#00201f]/30 to-[#00201f]/5" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#4A2E1C]/92 via-[#4A2E1C]/30 to-[#4A2E1C]/5" />
 
                   <span className="absolute top-4 right-5 font-headline text-3xl text-white/25 font-semibold">
                     0{i + 1}
@@ -278,7 +278,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
                 <span
                   key={service.id}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === mobileActiveIndex ? 'w-6 bg-[#f06c52]' : 'w-1.5 bg-[#e4e2df]'
+                    i === mobileActiveIndex ? 'w-6 bg-[#F0801A]' : 'w-1.5 bg-[#7A5238]'
                   }`}
                 />
               ))}
@@ -292,15 +292,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
               <div
                 key={service.id}
                 onClick={() => onSelectService(service.id)}
-                className="bg-[#fbf9f6] rounded-xl p-6 min-h-[258px] flex flex-col items-center text-center border border-[#e8e3dc] shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                className="bg-[#6B4530] rounded-xl p-6 min-h-[258px] flex flex-col items-center text-center border border-[#7A5238] shadow-sm hover:shadow-md transition-all group cursor-pointer"
               >
-                <div className="w-12 h-12 mb-3 text-[#004449] flex items-center justify-center">
+                <div className="w-12 h-12 mb-3 text-[#F0801A] flex items-center justify-center">
                   <ServiceIcon icon={service.icon} className="w-10 h-10" />
                 </div>
-                <h3 className="font-sans font-bold text-xs uppercase tracking-[0.14em] text-[#004449] mb-3 leading-snug">
+                <h3 className="font-sans font-bold text-xs uppercase tracking-[0.14em] text-[#F5F0E8] mb-3 leading-snug">
                   {service.shortTitle[0]}<br />{service.shortTitle[1]}
                 </h3>
-                <p className="text-[11px] text-[#3f4849] mb-5 flex-grow leading-relaxed font-body">
+                <p className="text-[11px] text-[#D8CFC4] mb-5 flex-grow leading-relaxed font-body">
                   {service.tagline}
                 </p>
                 <button
@@ -308,7 +308,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
                     e.stopPropagation();
                     onSelectService(service.id);
                   }}
-                  className="text-[11px] font-bold uppercase tracking-wider text-[#004449] group-hover:text-[#f06c52] transition-colors inline-flex items-center gap-1.5 mt-auto"
+                  className="text-[11px] font-bold uppercase tracking-wider text-[#F0801A] group-hover:text-[#F5A23A] transition-colors inline-flex items-center gap-1.5 mt-auto"
                 >
                   <span>LEARN MORE</span>
                   <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
@@ -323,7 +323,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
           {/* Arched Window Portal Overlaying the Right Side */}
           <div className="hidden lg:block absolute -top-24 right-0 w-[280px] xl:w-[330px] aspect-[1/1.5] z-30 pointer-events-none">
             {/* Arched Image Container with Dark Teal Outer Ring & Double Outline */}
-            <div className="relative w-full h-full p-2.5 rounded-t-[180px] rounded-b-3xl bg-[#004449] shadow-2xl border-2 border-[#004449]">
+            <div className="relative w-full h-full p-2.5 rounded-t-[180px] rounded-b-3xl bg-[#6B4530] shadow-2xl border-2 border-[#F0801A]">
               <div className="relative w-full h-full rounded-t-[170px] rounded-b-2xl overflow-hidden pointer-events-auto">
                 {ARCH_SLIDES.map((slide, i) => (
                   <img
@@ -335,7 +335,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectService }) => 
                     }`}
                   />
                 ))}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#004449]/20 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#4A2E1C]/30 via-transparent to-transparent" />
               </div>
             </div>
 

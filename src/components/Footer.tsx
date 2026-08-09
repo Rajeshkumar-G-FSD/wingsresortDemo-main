@@ -13,7 +13,7 @@ const socialLinks = [
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
-    <footer id="footer" className="bg-[#004449] text-white pt-24 pb-6 md:pt-28">
+    <footer id="footer" className="bg-[#4A2E1C] text-white pt-24 pb-6 md:pt-28">
       <div className="max-w-[1280px] mx-auto px-5 md:px-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 pb-10 border-b border-white/15">
           {/* Brand Col */}
@@ -25,10 +25,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 className="w-11 h-auto shrink-0"
               />
               <span>
-                <span className="font-headline text-xl font-bold tracking-tight text-white block leading-none uppercase">
+                <span className="font-headline text-xl font-bold tracking-tight text-[#F0801A] block leading-none uppercase">
                   Wings Resort
                 </span>
-                <span className="text-[9px] uppercase tracking-[0.24em] font-semibold text-white/70 block mt-1">
+                <span className="text-[9px] uppercase tracking-[0.24em] font-semibold text-[#D8CFC4]/80 block mt-1">
                   Luxury Resort
                 </span>
               </span>
@@ -44,7 +44,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   target="_blank"
                   rel="noreferrer"
                   aria-label={label}
-                  className="text-white/80 hover:text-[#f06c52] transition-colors"
+                  className="text-[#D8CFC4] hover:text-[#F0801A] transition-colors"
                 >
                   <Icon size={18} strokeWidth={1.75} />
                 </a>
@@ -59,27 +59,27 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </h4>
             <ul className="space-y-3 text-xs">
               <li>
-                <button onClick={() => onNavigate('villas')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('villas')} className="hover:text-[#F0801A] transition-colors">
                   Our Villas
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('about')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('about')} className="hover:text-[#F0801A] transition-colors">
                   Property Details
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('villa-amenities')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('villa-amenities')} className="hover:text-[#F0801A] transition-colors">
                   Amenities
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('map')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('map')} className="hover:text-[#F0801A] transition-colors">
                   Resort Map
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('story')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('story')} className="hover:text-[#F0801A] transition-colors">
                   Our Story
                 </button>
               </li>
@@ -93,27 +93,27 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </h4>
             <ul className="space-y-3 text-xs">
               <li>
-                <button onClick={() => onNavigate('explore')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('explore')} className="hover:text-[#F0801A] transition-colors">
                   Nearby Attractions
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('house-rules')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('house-rules')} className="hover:text-[#F0801A] transition-colors">
                   House Rules
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('faq')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('faq')} className="hover:text-[#F0801A] transition-colors">
                   FAQ
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('testimonials')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('testimonials')} className="hover:text-[#F0801A] transition-colors">
                   Reviews
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('contact')} className="hover:text-[#f06c52] transition-colors">
+                <button onClick={() => onNavigate('contact')} className="hover:text-[#F0801A] transition-colors">
                   Contact Us
                 </button>
               </li>

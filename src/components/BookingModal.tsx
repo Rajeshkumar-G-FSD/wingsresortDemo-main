@@ -133,11 +133,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn overflow-y-auto">
-      <div className="relative w-full max-w-3xl bg-[#fbf9f6] rounded-3xl overflow-hidden shadow-2xl border border-[#e4e2df] max-h-[90vh] flex flex-col my-auto">
+      <div className="relative w-full max-w-3xl bg-[#4A2E1C] rounded-3xl overflow-hidden shadow-2xl border border-[#7A5238] max-h-[90vh] flex flex-col my-auto">
         {/* Header */}
-        <div className="bg-[#004449] text-white p-6 sm:p-8 flex items-center justify-between">
+        <div className="bg-[#4A2E1C] text-white p-6 sm:p-8 flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8fd2d8]">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D8CFC4]">
               Wings Concierge Engine
             </span>
             <h2 className="font-headline text-2xl sm:text-3xl font-semibold mt-1">
@@ -155,26 +155,26 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         {submitted ? (
           /* Confirmation Screen */
           <div className="p-8 sm:p-12 text-center space-y-6">
-            <div className="w-20 h-20 rounded-full bg-[#004449]/10 text-[#004449] mx-auto flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full bg-[#F0801A]/10 text-[#F0801A] mx-auto flex items-center justify-center">
               <span className="material-symbols-outlined text-5xl">task_alt</span>
             </div>
 
-            <h3 className="font-headline text-3xl text-[#004449] font-bold">
+            <h3 className="font-headline text-3xl text-[#F5F0E8] font-bold">
               We Look Forward to Welcoming You
             </h3>
 
-            <p className="text-sm text-[#3f4849] max-w-md mx-auto leading-relaxed">
-              Thank you, <strong className="text-[#004449]">{name || 'Valued Guest'}</strong>. Your reservation request for <strong className="text-[#004449]">{selectedRoom.name}</strong> ({checkIn} to {checkOut}) has been received. Our Wings Resort team will send your complete itinerary to <strong className="text-[#004449]">{email || 'your email'}</strong> within 2 hours.
+            <p className="text-sm text-[#D8CFC4] max-w-md mx-auto leading-relaxed">
+              Thank you, <strong className="text-[#F5F0E8]">{name || 'Valued Guest'}</strong>. Your reservation request for <strong className="text-[#F5F0E8]">{selectedRoom.name}</strong> ({checkIn} to {checkOut}) has been received. Our Wings Resort team will send your complete itinerary to <strong className="text-[#F5F0E8]">{email || 'your email'}</strong> within 2 hours.
             </p>
 
-            <div className="p-6 bg-[#f5f3f0] rounded-2xl max-w-md mx-auto border border-[#e4e2df] text-left text-xs space-y-2">
+            <div className="p-6 bg-[#6B4530] rounded-2xl max-w-md mx-auto border border-[#7A5238] text-left text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-[#a93721] font-semibold">CONFIRMATION CODE:</span>
-                <span className="font-mono font-bold text-[#004449]">WING-2026-9842</span>
+                <span className="text-[#F0801A] font-semibold">CONFIRMATION CODE:</span>
+                <span className="font-mono font-bold text-[#F5F0E8]">WING-2026-9842</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#a93721] font-semibold">TOTAL ESTIMATE:</span>
-                <span className="font-bold text-[#004449]">{formatINR(total)}</span>
+                <span className="text-[#F0801A] font-semibold">TOTAL ESTIMATE:</span>
+                <span className="font-bold text-[#F5F0E8]">{formatINR(total)}</span>
               </div>
             </div>
 
@@ -190,13 +190,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 overflow-y-auto space-y-6">
             {/* Accommodation Selection */}
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-1">
                 Select Accommodation
               </label>
               <select
                 value={selectedRoomId}
                 onChange={(e) => setSelectedRoomId(e.target.value)}
-                className="w-full p-3 rounded-full bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
+                className="w-full p-3 rounded-full bg-[#6B4530] border border-[#7A5238] text-xs font-medium text-[#F5F0E8] focus:outline-none focus:border-[#F0801A]"
               >
                 {ROOM_CATEGORIES.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -208,7 +208,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
             {/* Guided Stay Dates & Guests */}
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-1">
                 Your Stay
               </label>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -245,20 +245,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       setCheckInOpen(false);
                       setCheckOutOpen(false);
                     }}
-                    className="group flex w-full min-w-0 items-center gap-3 rounded-full bg-[#f5f3f0] border border-[#e4e2df] px-4 py-3 text-left hover:border-[#004449] transition-colors"
+                    className="group flex w-full min-w-0 items-center gap-3 rounded-full bg-[#6B4530] border border-[#7A5238] px-4 py-3 text-left hover:border-[#F0801A] transition-colors"
                   >
-                    <span className="material-symbols-outlined text-[#f06c52] text-lg shrink-0">group</span>
+                    <span className="material-symbols-outlined text-[#F0801A] text-lg shrink-0">group</span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[9px] font-bold uppercase tracking-[.14em] text-[#6f797a]">Guests</span>
-                      <span className="block truncate text-xs font-semibold text-[#004449]">{guests} Guest{guests > 1 ? 's' : ''}</span>
+                      <span className="block text-[9px] font-bold uppercase tracking-[.14em] text-[#D8CFC4]/70">Guests</span>
+                      <span className="block truncate text-xs font-semibold text-[#F5F0E8]">{guests} Guest{guests > 1 ? 's' : ''}</span>
                     </span>
-                    <span className="material-symbols-outlined text-base text-[#004449] shrink-0">
+                    <span className="material-symbols-outlined text-base text-[#F5F0E8] shrink-0">
                       {guestsOpen ? 'expand_less' : 'expand_more'}
                     </span>
                   </button>
 
                   {guestsOpen && (
-                    <div className="absolute right-0 sm:left-0 top-[calc(100%+8px)] z-40 w-full min-w-[200px] rounded-3xl bg-white p-2 shadow-2xl border border-[#e4e2df] animate-fadeIn">
+                    <div className="absolute right-0 sm:left-0 top-[calc(100%+8px)] z-40 w-full min-w-[200px] rounded-3xl bg-[#6B4530] p-2 shadow-2xl border border-[#7A5238] animate-fadeIn">
                       {[1, 2, 3, 4, 5, 6].map((n) => (
                         <button
                           key={n}
@@ -268,7 +268,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                             setGuestsOpen(false);
                           }}
                           className={`w-full flex items-center justify-between px-4 py-2.5 rounded-full text-xs font-semibold transition-colors ${
-                            guests === n ? 'coral-gradient text-white' : 'text-[#1b1c1a] hover:bg-[#f5f3f0]'
+                            guests === n ? 'coral-gradient text-white' : 'text-[#F5F0E8] hover:bg-[#6B4530]'
                           }`}
                         >
                           <span>{n}{n === 6 ? '+' : ''} Guest{n > 1 ? 's' : ''}</span>
@@ -283,47 +283,47 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
             {/* Bespoke Add-ons */}
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-2">
                 Enhance Your Stay (Optional Add-ons)
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label className="flex items-center justify-between p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] cursor-pointer hover:bg-[#efeeeb] transition-colors">
-                  <span className="text-xs font-medium text-[#1b1c1a]">Railway/Bus Stand Pickup &amp; Drop (+{formatINR(1500)})</span>
+                <label className="flex items-center justify-between p-3 rounded-xl bg-[#6B4530] border border-[#7A5238] cursor-pointer hover:bg-[#6B4530] transition-colors">
+                  <span className="text-xs font-medium text-[#F5F0E8]">Railway/Bus Stand Pickup &amp; Drop (+{formatINR(1500)})</span>
                   <input
                     type="checkbox"
                     checked={addons.stationTransfer}
                     onChange={(e) => setAddons({ ...addons, stationTransfer: e.target.checked })}
-                    className="accent-[#004449] w-4 h-4"
+                    className="accent-[#F0801A] w-4 h-4"
                   />
                 </label>
 
-                <label className="flex items-center justify-between p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] cursor-pointer hover:bg-[#efeeeb] transition-colors">
-                  <span className="text-xs font-medium text-[#1b1c1a]">Candlelight Private Dinner Setup (+{formatINR(2000)})</span>
+                <label className="flex items-center justify-between p-3 rounded-xl bg-[#6B4530] border border-[#7A5238] cursor-pointer hover:bg-[#6B4530] transition-colors">
+                  <span className="text-xs font-medium text-[#F5F0E8]">Candlelight Private Dinner Setup (+{formatINR(2000)})</span>
                   <input
                     type="checkbox"
                     checked={addons.candlelightDinner}
                     onChange={(e) => setAddons({ ...addons, candlelightDinner: e.target.checked })}
-                    className="accent-[#004449] w-4 h-4"
+                    className="accent-[#F0801A] w-4 h-4"
                   />
                 </label>
 
-                <label className="flex items-center justify-between p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] cursor-pointer hover:bg-[#efeeeb] transition-colors">
-                  <span className="text-xs font-medium text-[#1b1c1a]">Bonfire / Campfire Evening (+{formatINR(CAMPFIRE_CHARGE)})</span>
+                <label className="flex items-center justify-between p-3 rounded-xl bg-[#6B4530] border border-[#7A5238] cursor-pointer hover:bg-[#6B4530] transition-colors">
+                  <span className="text-xs font-medium text-[#F5F0E8]">Bonfire / Campfire Evening (+{formatINR(CAMPFIRE_CHARGE)})</span>
                   <input
                     type="checkbox"
                     checked={addons.campfire}
                     onChange={(e) => setAddons({ ...addons, campfire: e.target.checked })}
-                    className="accent-[#004449] w-4 h-4"
+                    className="accent-[#F0801A] w-4 h-4"
                   />
                 </label>
 
-                <label className="flex items-center justify-between p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] cursor-pointer hover:bg-[#efeeeb] transition-colors">
-                  <span className="text-xs font-medium text-[#1b1c1a]">Welcome Fruit Basket &amp; Local Snacks (+{formatINR(800)})</span>
+                <label className="flex items-center justify-between p-3 rounded-xl bg-[#6B4530] border border-[#7A5238] cursor-pointer hover:bg-[#6B4530] transition-colors">
+                  <span className="text-xs font-medium text-[#F5F0E8]">Welcome Fruit Basket &amp; Local Snacks (+{formatINR(800)})</span>
                   <input
                     type="checkbox"
                     checked={addons.welcomeHamper}
                     onChange={(e) => setAddons({ ...addons, welcomeHamper: e.target.checked })}
-                    className="accent-[#004449] w-4 h-4"
+                    className="accent-[#F0801A] w-4 h-4"
                   />
                 </label>
               </div>
@@ -332,7 +332,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             {/* Guest Contact Details */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-1">
                   Full Name
                 </label>
                 <input
@@ -340,13 +340,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   placeholder="e.g. Priya Sharma"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
+                  className="w-full p-3 rounded-xl bg-[#6B4530] border border-[#7A5238] text-xs font-medium text-[#F5F0E8] focus:outline-none focus:border-[#F0801A]"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-1">
                   Email Address
                 </label>
                 <input
@@ -354,14 +354,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   placeholder="e.g. priya@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
+                  className="w-full p-3 rounded-xl bg-[#6B4530] border border-[#7A5238] text-xs font-medium text-[#F5F0E8] focus:outline-none focus:border-[#F0801A]"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-[#a93721] block mb-1">
+              <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-1">
                 Special Requests or Dietary Preferences
               </label>
               <textarea
@@ -369,23 +369,23 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 placeholder="Let us know if you are celebrating an anniversary, require specific pillows, or have dietary requests..."
                 value={specialRequests}
                 onChange={(e) => setSpecialRequests(e.target.value)}
-                className="w-full p-3 rounded-xl bg-[#f5f3f0] border border-[#e4e2df] text-xs font-medium text-[#1b1c1a] focus:outline-none focus:border-[#004449]"
+                className="w-full p-3 rounded-xl bg-[#6B4530] border border-[#7A5238] text-xs font-medium text-[#F5F0E8] focus:outline-none focus:border-[#F0801A]"
               />
             </div>
 
             {/* Price Summary Breakdown */}
-            <div className="p-4 rounded-2xl bg-[#004449]/5 border border-[#004449]/10 space-y-2 text-xs">
-              <div className="flex justify-between text-[#3f4849]">
+            <div className="p-4 rounded-2xl bg-[#6B4530] border border-[#F0801A]/10 space-y-2 text-xs">
+              <div className="flex justify-between text-[#D8CFC4]">
                 <span>{selectedRoom.name} ({nights} nights @ {formatINR(selectedRoom.weekdayPrice)})</span>
                 <span>{formatINR(subtotal)}</span>
               </div>
               {addonTotal > 0 && (
-                <div className="flex justify-between text-[#3f4849]">
+                <div className="flex justify-between text-[#D8CFC4]">
                   <span>Concierge Add-ons</span>
                   <span>+{formatINR(addonTotal)}</span>
                 </div>
               )}
-              <div className="border-t border-[#004449]/10 pt-2 flex justify-between font-bold text-sm text-[#004449]">
+              <div className="border-t border-[#F0801A]/10 pt-2 flex justify-between font-bold text-sm text-[#F5F0E8]">
                 <span>Estimated Total</span>
                 <span>{formatINR(total)}</span>
               </div>

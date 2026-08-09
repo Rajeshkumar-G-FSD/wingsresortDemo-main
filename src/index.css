@@ -69,11 +69,11 @@
 }
 
 .coral-gradient {
-  background: linear-gradient(135deg, #F46D52 0%, #D45037 100%);
+  background: linear-gradient(135deg, #F0801A 0%, #F5A23A 100%);
 }
 
 .coral-gradient-hover:hover {
-  background: linear-gradient(135deg, #f57a61 0%, #e25b42 100%);
+  background: linear-gradient(135deg, #F5A23A 0%, #F0801A 100%);
 }
 
 .teal-gradient {
@@ -201,7 +201,7 @@ html { scroll-behavior: smooth; }
 @keyframes hero-kenburns { from { transform: scale(1.06) translate(0, 0); } to { transform: scale(1.16) translate(-1.2%, -1.5%); } }
 @keyframes hero-kenburns-alt { from { transform: scale(1.06) translate(0, 0); } to { transform: scale(1.16) translate(1.2%, 1%); } }
 .hero-dot { width: 6px; height: 6px; border-radius: 999px; background: rgba(255,255,255,.55); transition: width 420ms ease, background 420ms ease; }
-.hero-dot-active { width: 22px; background: #fbf9f6; }
+.hero-dot-active { width: 22px; background: #F0801A; }
 .hero-arrow { opacity: 0; transition: opacity 320ms ease, background 220ms ease, transform 220ms ease; }
 .hero-slideshow:hover .hero-arrow, .hero-slideshow:focus-within .hero-arrow { opacity: 1; }
 
@@ -214,9 +214,9 @@ html { scroll-behavior: smooth; }
   .attraction-card { transition: none; opacity: 1; transform: none; }
 }
 
-#footer h4, #footer p, #footer li, #footer label, #footer a, #footer button:not(.coral-gradient) { color: rgba(255, 255, 255, .82); }
-#footer h4 { color: #fff; }
-#footer input { color: #004449; }
+#footer h4, #footer p, #footer li, #footer label, #footer a, #footer button:not(.coral-gradient) { color: rgba(216, 207, 196, .85); }
+#footer h4 { color: #F5F0E8; }
+#footer input { color: #4A2E1C; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
