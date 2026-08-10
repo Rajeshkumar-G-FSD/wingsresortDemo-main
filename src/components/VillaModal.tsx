@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RoomCategory } from '../types';
-import { formatINR } from '../data/roomsData';
+import { formatINR, getRoomUnits, getUnitMaxAdults, getUnitBedType } from '../data/roomsData';
 
 interface VillaModalProps {
   room: RoomCategory | null;
@@ -81,6 +81,27 @@ export const VillaModal: React.FC<VillaModalProps> = ({ room, onClose, onBookDir
             <h3 className="font-headline text-xl text-[#004449] font-semibold mb-2">About the Room</h3>
             <p className="text-sm text-[#3f4849] leading-relaxed">{room.description}</p>
           </div>
+
+          {/* Individual rooms in this category */}
+          {room.roomCount > 1 && (
+            <div>
+              <h3 className="font-headline text-xl text-[#004449] font-semibold mb-3">Available Rooms</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {getRoomUnits(room).map((unit) => (
+                  <div key={unit.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#e4e2df] bg-[#f5f3f0] px-4 py-3">
+                    <div>
+                      <span className="block text-xs font-bold text-[#004449]">{unit.label}</span>
+                      <span className="block text-[11px] text-[#6f797a]">{getUnitBedType(room, unit)}{unit.note ? ` · ${unit.note}` : ''}</span>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-[#004449] border border-[#e4e2df]">
+                      Up to {getUnitMaxAdults(room, unit)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] text-[#6f797a]">You'll choose the specific room(s) you want when booking.</p>
+            </div>
+          )}
 
           {/* Included Amenities */}
           <div>

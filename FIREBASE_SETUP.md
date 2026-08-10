@@ -1,11 +1,18 @@
 # Firebase Setup — Wings Resort Bookings
 
 The booking form and admin dashboard are wired to your Firebase project
-(`wingsresort-fd0cd`) via the Firestore `bookings` collection. Right now,
-saving a booking or loading the admin dashboard fails with **"Missing or
-insufficient permissions"** — this is expected until you set Firestore
-Security Rules, which is the one step only you can do (it requires access
-to your Firebase Console, which I don't have).
+(`wingsresort-fd0cd`) via three Firestore collections: `bookings`,
+`roomBlocks` (admin block/unblock of individual rooms), and `roomPricing`
+(admin price overrides). Right now, saving a booking, blocking a room, or
+updating a price fails with **"Missing or insufficient permissions"** — this
+is expected until you set Firestore Security Rules, which is the one step
+only you can do (it requires access to your Firebase Console, which I
+don't have).
+
+> **Already published Option A before?** You only had `bookings` covered.
+> Re-publish the rules below (still Option A) to add `roomBlocks` and
+> `roomPricing` — otherwise the new Rooms & Pricing tab in the admin
+> dashboard will fail to load or save.
 
 ## Do this now: open Firestore, then set rules
 
@@ -22,6 +29,12 @@ service cloud.firestore {
     match /bookings/{bookingId} {
       allow create: if true;
       allow read, update, delete: if true;
+    }
+    match /roomBlocks/{blockId} {
+      allow create, read, update, delete: if true;
+    }
+    match /roomPricing/{roomId} {
+      allow create, read, update, delete: if true;
     }
   }
 }
@@ -52,6 +65,12 @@ service cloud.firestore {
       allow create: if true;
       allow read, update, delete: if request.auth != null;
     }
+    match /roomBlocks/{blockId} {
+      allow create, read, update, delete: if request.auth != null;
+    }
+    match /roomPricing/{roomId} {
+      allow create, read, update, delete: if request.auth != null;
+    }
   }
 }
 ```
@@ -65,8 +84,11 @@ service cloud.firestore {
 
 - `src/lib/firebase.ts` — Firebase app + Firestore client, using the config you gave.
 - `src/lib/bookingsRepo.ts` — `createBooking`, `subscribeToBookings` (realtime), `updateBookingStatus`, `deleteBooking`.
+- `src/lib/roomsRepo.ts` — `createRoomBlock`, `deleteRoomBlock`, `subscribeToRoomBlocks`, `updateRoomPricing`, `subscribeToRoomPricing`.
 - Booking form (`RoomBookingModal`) writes a document per booking request, then opens WhatsApp with the bill.
-- Admin dashboard (`AdminDashboardPage`) lists bookings in realtime, lets you change status or delete a booking.
+- Admin dashboard (`AdminDashboardPage`) has two tabs:
+  - **Bookings** — lists bookings in realtime, lets you change status or delete a booking.
+  - **Rooms & Pricing** (`AdminRoomsPanel`) — edit each room category's weekday/weekend price (applies site-wide instantly), block/unblock individual rooms (3BHK Room 1–2, 2BHK Room 201–207, Couples Rooms 1–5, A Type Wood House, Wood House, Family Room) with a date range and reason, and a rolling 12-month calendar (per room) showing nightly rate + open/blocked dates.
 
 Once rules are published, everything works with no further code changes —
 refresh the site and submit a booking to confirm.

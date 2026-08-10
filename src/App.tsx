@@ -26,6 +26,7 @@ import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminDashboardPage } from './components/AdminDashboardPage';
 import { RoomCategory, Experience } from './types';
 import { SERVICES } from './data/resortData';
+import { subscribeToRoomPricing } from './lib/roomsRepo';
 
 const ADMIN_SESSION_KEY = 'wr_admin_authed';
 // Must stay in sync with the nav item ids in Header.tsx.
@@ -49,6 +50,17 @@ export function App() {
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAdminAuthed, setIsAdminAuthed] = useState(() => sessionStorage.getItem(ADMIN_SESSION_KEY) === '1');
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+  // Bumped whenever admin-set room prices change in Firestore, so every page re-reads the (mutated-in-place)
+  // ROOM_CATEGORIES pricing without each component needing its own subscription.
+  const [, setPricingVersion] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToRoomPricing(
+      () => setPricingVersion((v) => v + 1),
+      () => {} // Pricing overrides are best-effort; silently fall back to the code defaults on error.
+    );
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     const targets = Array.from(document.querySelectorAll<HTMLElement>('main > *'));

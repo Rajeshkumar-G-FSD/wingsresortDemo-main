@@ -2,10 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { BookingRecord, BookingStatus } from '../types';
 import { subscribeToBookings, updateBookingStatus, deleteBooking } from '../lib/bookingsRepo';
 import { formatINR } from '../data/roomsData';
+import { AdminRoomsPanel } from './AdminRoomsPanel';
 
 interface AdminDashboardPageProps {
   onLogout: () => void;
 }
+
+type AdminTab = 'bookings' | 'rooms';
 
 const STATUS_FILTERS: (BookingStatus | 'All')[] = ['All', 'Pending Payment', 'Confirmed', 'Checked In', 'Checked Out', 'Cancelled'];
 
@@ -31,6 +34,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onLogout
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'All'>('All');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [tab, setTab] = useState<AdminTab>('bookings');
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
@@ -92,6 +96,28 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onLogout
           </button>
         </div>
 
+        {/* Top-level tabs */}
+        <div className="mb-8 flex gap-2">
+          {([
+            { id: 'bookings' as const, label: 'Bookings', icon: 'event_note' },
+            { id: 'rooms' as const, label: 'Rooms & Pricing', icon: 'meeting_room' },
+          ]).map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wide transition-colors ${
+                tab === t.id ? 'bg-[#004449] text-white' : 'bg-white text-[#3f4849] hover:bg-[#eef3f2]'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">{t.icon}</span> {t.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'rooms' ? (
+          <AdminRoomsPanel bookings={bookings} />
+        ) : (
+          <>
         {/* Stat cards */}
         <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
           <div className="rounded-2xl bg-white p-5 soft-shadow">
@@ -172,7 +198,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onLogout
                       </td>
                       <td className="px-4 py-4">
                         <span className="block font-semibold text-[#1b1c1a]">{b.roomName}</span>
-                        <span className="block text-[#6f797a]">Qty {b.quantity}</span>
+                        <span className="block text-[#6f797a]">
+                          {b.units && b.units.length > 0 ? b.units.join(', ') : `Qty ${b.quantity}`}
+                        </span>
                         <span className="block text-[10px] text-[#a7ada9]">Ref {b.id.slice(0, 8).toUpperCase()}</span>
                       </td>
                       <td className="px-4 py-4">
@@ -229,6 +257,8 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onLogout
             </div>
           )}
         </div>
+          </>
+        )}
       </div>
     </div>
   );

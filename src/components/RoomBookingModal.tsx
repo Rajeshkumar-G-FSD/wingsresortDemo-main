@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BookingMode, PaymentPlan, RoomCategory } from '../types';
+import { BookingMode, PaymentPlan, RoomBlock, RoomCategory } from '../types';
 import {
   CAMPFIRE_CHARGE,
   CANCELLATION_DAYS_BEFORE_CHECKIN,
@@ -9,12 +9,19 @@ import {
   calculateRoomSubtotal,
   formatINR,
   getNightlyBreakdown,
+  getRoomUnits,
+  getUnitMaxAdults,
 } from '../data/roomsData';
 import { CONTACT_INFO } from '../data/contactInfo';
 import { PAYMENT_INFO, buildUpiPaymentString } from '../data/paymentInfo';
 import { DatePickerPopover, toISO } from './DatePickerPopover';
 import { QRCodeImage } from './QRCodeImage';
 import { createBooking } from '../lib/bookingsRepo';
+import { subscribeToRoomBlocks } from '../lib/roomsRepo';
+
+/** A room unit is unavailable for a stay if any admin block on it overlaps the [checkIn, checkOut) range. */
+const unitOverlapsBlock = (block: RoomBlock, checkIn: string, checkOut: string): boolean =>
+  Boolean(checkIn && checkOut) && block.startDate < checkOut && block.endDate >= checkIn;
 
 interface RoomBookingModalProps {
   room: RoomCategory | null;
@@ -60,7 +67,8 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);
 
-  const [quantity, setQuantity] = useState(1);
+  const [blocks, setBlocks] = useState<RoomBlock[]>([]);
+  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
   const [adults, setAdults] = useState(Math.max(1, initialAdults));
   const [children, setChildren] = useState(0);
   const [extraBeds, setExtraBeds] = useState(0);
@@ -83,11 +91,23 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
   const [bookingRef, setBookingRef] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Room blocks are admin-set (maintenance, owner use); subscribed once so the unit picker below can grey them out live.
+  useEffect(() => {
+    const unsubscribe = subscribeToRoomBlocks(setBlocks, () => {});
+    return unsubscribe;
+  }, []);
+
   useEffect(() => {
     setCheckIn(initialCheckIn);
     setCheckOut(initialCheckOut);
     setAdults(Math.max(1, initialAdults));
-    setQuantity(1);
+    if (room) {
+      const roomUnits = getRoomUnits(room);
+      const firstAvailable = roomUnits.find((u) => !blocks.some((b) => b.unitId === u.id && unitOverlapsBlock(b, initialCheckIn, initialCheckOut)));
+      setSelectedUnitIds(firstAvailable ? [firstAvailable.id] : roomUnits.length > 0 ? [roomUnits[0].id] : []);
+    } else {
+      setSelectedUnitIds([]);
+    }
     setChildren(0);
     setExtraBeds(0);
     setCampfire(false);
@@ -105,9 +125,30 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
     setBookingRef(null);
     setIsSubmitting(false);
     scrollRef.current?.scrollTo({ top: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.id, initialCheckIn, initialCheckOut, initialAdults]);
 
+  // If a change of dates (or a fresh block coming in) makes a currently-selected room unavailable, drop it —
+  // guests should never be able to submit a booking for a room that's actually blocked.
+  useEffect(() => {
+    if (!room) return;
+    setSelectedUnitIds((prev) => prev.filter((unitId) => !blocks.some((b) => b.unitId === unitId && unitOverlapsBlock(b, checkIn, checkOut))));
+  }, [room, checkIn, checkOut, blocks]);
+
   if (!room) return null;
+
+  const units = getRoomUnits(room);
+  const selectedUnits = units.filter((u) => selectedUnitIds.includes(u.id));
+  const unitDisplayLabels = selectedUnits.map((u) => (u.note ? `${u.label} (${u.note})` : u.label));
+  const quantity = selectedUnitIds.length;
+  const isUnitBlockedForStay = (unitId: string) => blocks.some((b) => b.unitId === unitId && unitOverlapsBlock(b, checkIn, checkOut));
+  const allUnitsBlocked = units.length > 0 && units.every((u) => isUnitBlockedForStay(u.id));
+
+  const toggleUnit = (unitId: string) => {
+    if (isUnitBlockedForStay(unitId)) return;
+    setSelectedUnitIds((prev) => (prev.includes(unitId) ? prev.filter((id) => id !== unitId) : [...prev, unitId]));
+    setOccupancyError(null);
+  };
 
   const nights = calculateNights(checkIn, checkOut);
   const breakdown = getNightlyBreakdown(room, checkIn, checkOut);
@@ -115,7 +156,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
   const extraBedTotal = extraBeds * EXTRA_BED_CHARGE_PER_NIGHT * nights;
   const campfireTotal = campfire ? CAMPFIRE_CHARGE : 0;
   const total = roomSubtotal + extraBedTotal + campfireTotal;
-  const maxOccupancy = room.maxAdults * quantity;
+  const maxOccupancy = selectedUnits.reduce((sum, u) => sum + getUnitMaxAdults(room, u), 0);
   const cancellationDeadline = checkIn ? addDays(checkIn, -CANCELLATION_DAYS_BEFORE_CHECKIN) : '';
 
   const advanceAmount = Math.round(total * 0.4);
@@ -135,14 +176,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
   const handleAdultsChange = (value: number) => {
     const next = Math.max(1, value);
     setAdults(next);
-    setOccupancyError(next > maxOccupancy ? `Maximum ${maxOccupancy} adult${maxOccupancy > 1 ? 's' : ''} for ${quantity} room${quantity > 1 ? 's' : ''} of this type.` : null);
-  };
-
-  const handleQuantityChange = (value: number) => {
-    const next = Math.min(room.roomCount, Math.max(1, value));
-    setQuantity(next);
-    const newMax = room.maxAdults * next;
-    setOccupancyError(adults > newMax ? `Maximum ${newMax} adult${newMax > 1 ? 's' : ''} for ${next} room${next > 1 ? 's' : ''} of this type.` : null);
+    setOccupancyError(next > maxOccupancy ? `Maximum ${maxOccupancy} adult${maxOccupancy > 1 ? 's' : ''} for the ${quantity} room${quantity > 1 ? 's' : ''} selected.` : null);
   };
 
   const handleGuestChange = (field: keyof GuestFormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -166,8 +200,12 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
       setOccupancyError('Please select valid check-in and check-out dates.');
       return false;
     }
+    if (selectedUnitIds.length === 0) {
+      setOccupancyError('Please select at least one room for your stay.');
+      return false;
+    }
     if (adults > maxOccupancy) {
-      setOccupancyError(`Maximum ${maxOccupancy} adult${maxOccupancy > 1 ? 's' : ''} for ${quantity} room${quantity > 1 ? 's' : ''} of this type.`);
+      setOccupancyError(`Maximum ${maxOccupancy} adult${maxOccupancy > 1 ? 's' : ''} for the ${quantity} room${quantity > 1 ? 's' : ''} selected.`);
       return false;
     }
     if (bookingMode === 'pay_now' && paymentPlan === 'custom') {
@@ -199,6 +237,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
         checkOut,
         nights,
         quantity,
+        units: unitDisplayLabels,
         adults,
         children,
         extraBeds,
@@ -224,6 +263,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
       const message = [
         `Hello Wings Resort! Here’s my booking for ${quantity} × ${room.name}.`,
         `Booking Ref: ${ref}`,
+        `Room(s): ${unitDisplayLabels.join(', ')}`,
         '',
         `Check-in: ${checkIn}`,
         `Check-out: ${checkOut} (${nights} night${nights > 1 ? 's' : ''})`,
@@ -343,16 +383,50 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                 </div>
               </div>
 
-              {/* Room configuration */}
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F5F0E8]">Rooms</label>
-                  <div className="flex items-center rounded-xl border border-[#7A5238] bg-[#6B4530]">
-                    <button type="button" onClick={() => handleQuantityChange(quantity - 1)} className="px-3 py-2.5 text-[#F5F0E8] disabled:opacity-30" disabled={quantity <= 1}>−</button>
-                    <span className="flex-1 text-center text-sm font-semibold text-[#F5F0E8]">{quantity}</span>
-                    <button type="button" onClick={() => handleQuantityChange(quantity + 1)} className="px-3 py-2.5 text-[#F5F0E8] disabled:opacity-30" disabled={quantity >= room.roomCount}>+</button>
-                  </div>
+              {/* Room selection — specific units, so blocked rooms can't be picked */}
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A]">Select Room(s)</label>
+                  <span className="rounded-full bg-[#6B4530] px-2.5 py-1 text-[10px] font-bold text-[#F5F0E8]">{quantity} selected</span>
                 </div>
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                  {units.map((unit) => {
+                    const blocked = isUnitBlockedForStay(unit.id);
+                    const isSelected = selectedUnitIds.includes(unit.id);
+                    const unitMax = getUnitMaxAdults(room, unit);
+                    return (
+                      <button
+                        key={unit.id}
+                        type="button"
+                        disabled={blocked}
+                        onClick={() => toggleUnit(unit.id)}
+                        className={`relative flex h-full flex-col items-start gap-0.5 rounded-xl border px-3.5 py-3 text-left transition-colors ${
+                          blocked
+                            ? 'cursor-not-allowed border-[#7A5238]/60 bg-[#6B4530]/40 opacity-50'
+                            : isSelected
+                              ? 'border-[#F0801A] bg-[#F0801A] text-[#2B1810] shadow-md'
+                              : 'border-[#7A5238] bg-[#6B4530] text-[#F5F0E8] hover:border-[#F0801A]'
+                        }`}
+                      >
+                        {isSelected && !blocked && (
+                          <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#2B1810] text-[#F0801A]">
+                            <span className="material-symbols-outlined text-[11px]">check</span>
+                          </span>
+                        )}
+                        <span className="pr-4 text-xs font-bold leading-tight">{unit.label}</span>
+                        <span className={`text-[10px] leading-snug ${isSelected ? 'text-[#2B1810]/70' : 'text-[#D8CFC4]/70'}`}>
+                          {blocked ? 'Not available' : `Up to ${unitMax} adult${unitMax > 1 ? 's' : ''}`}{!blocked && unit.note ? ` · ${unit.note}` : ''}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {allUnitsBlocked && (
+                  <p className="mt-2 text-xs font-semibold text-[#c0392b]">All {room.name} rooms are unavailable for these dates. Please try different dates.</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 <div>
                   <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F5F0E8]">Adults</label>
                   <div className="flex items-center rounded-xl border border-[#7A5238] bg-[#6B4530]">
@@ -381,7 +455,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                 )}
               </div>
               {occupancyError && <p className="text-xs font-semibold text-[#c0392b]">{occupancyError}</p>}
-              <p className="text-xs text-[#D8CFC4]/70">Children below {CHILD_FREE_AGE} years stay free. Max {room.maxAdults} adults per room.</p>
+              <p className="text-xs text-[#D8CFC4]/70">Children below {CHILD_FREE_AGE} years stay free. Combined capacity of the room(s) you select: {maxOccupancy} adult{maxOccupancy > 1 ? 's' : ''}.</p>
 
               {/* Campfire add-on */}
               <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#7A5238] bg-[#6B4530] px-4 py-3">
@@ -565,7 +639,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                   <div><span className="block text-[#D8CFC4]/70">Total Guests</span><span className="font-bold text-[#F5F0E8]">{adults + children}</span></div>
                 </div>
 
-                <div className="mb-3 flex justify-between text-xs"><span className="text-[#D8CFC4]/70">Room(s) Booked</span><span className="font-bold text-[#F5F0E8]">{quantity}</span></div>
+                <div className="mb-3 flex justify-between text-xs"><span className="text-[#D8CFC4]/70">Room(s) Booked</span><span className="font-bold text-[#F5F0E8]">{unitDisplayLabels.join(', ') || '—'}</span></div>
 
                 <div className="space-y-2 rounded-xl bg-[#6B4530] p-4 text-xs">
                   {breakdown.map((night) => (
@@ -654,7 +728,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || selectedUnitIds.length === 0}
                 className="w-full rounded-full bg-[#F0801A] py-4 text-xs font-bold uppercase tracking-widest text-[#2B1810] shadow-lg transition hover:bg-[#F5A23A] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? 'Saving your booking…' : 'Confirm Booking & Send Bill via WhatsApp'}

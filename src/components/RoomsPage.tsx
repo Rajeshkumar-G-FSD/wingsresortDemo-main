@@ -7,6 +7,9 @@ import {
   EXTRA_BED_CHARGE_PER_NIGHT,
   formatINR,
   getNightlyRate,
+  getRoomUnits,
+  getUnitBedType,
+  getUnitMaxAdults,
   isWeekendDate,
 } from '../data/roomsData';
 import { DatePickerPopover, toISO } from './DatePickerPopover';
@@ -309,6 +312,27 @@ export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialChe
                     <span key={a} className="rounded-full bg-[#6B4530] px-3 py-1.5 text-xs font-semibold text-[#F5F0E8]">{a}</span>
                   ))}
                 </div>
+
+                {/* Individual rooms in this category */}
+                {selectedRoom.roomCount > 1 && (
+                  <div className="mt-6">
+                    <h4 className="mb-3 text-xs font-bold uppercase tracking-wide text-[#F0801A]">Available Rooms</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {getRoomUnits(selectedRoom).map((unit) => (
+                        <div key={unit.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#7A5238] bg-[#6B4530] px-4 py-2.5">
+                          <div>
+                            <span className="block text-xs font-bold text-[#F5F0E8]">{unit.label}</span>
+                            <span className="block text-[10px] text-[#D8CFC4]/70">{getUnitBedType(selectedRoom, unit)}{unit.note ? ` · ${unit.note}` : ''}</span>
+                          </div>
+                          <span className="shrink-0 rounded-full bg-[#F0801A]/15 px-2.5 py-1 text-[10px] font-bold text-[#F0801A]">
+                            Up to {getUnitMaxAdults(selectedRoom, unit)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-[11px] text-[#D8CFC4]/70">You'll choose the specific room(s) you want when booking.</p>
+                  </div>
+                )}
 
                 {/* Pricing table */}
                 <div className="mt-6 overflow-hidden rounded-2xl border border-[#7A5238] bg-[#6B4530]">

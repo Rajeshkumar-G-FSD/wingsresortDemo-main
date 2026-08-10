@@ -90,6 +90,42 @@ export interface RoomCategory {
   badge: string;
 }
 
+/** A single physical room within a category, e.g. "Room 1" inside 3BHK Villa, or "Room 204" inside 2BHK Villa. */
+export interface RoomUnit {
+  id: string;
+  label: string;
+  /** Overrides the category's default `maxAdults` when this specific room sleeps a different number of guests. */
+  maxAdults?: number;
+  /** Overrides the category's default `bedType` for this specific room. */
+  bedType?: string;
+  /** Short tag shown next to the room, e.g. "Family Room", "Double Occupancy". */
+  note?: string;
+}
+
+/** An admin-created block that takes a specific room unit out of availability for a date range (maintenance, owner use, etc). */
+export interface RoomBlock {
+  id: string;
+  roomId: string;
+  roomName: string;
+  unitId: string;
+  unitLabel: string;
+  /** Inclusive ISO date of the first blocked night. */
+  startDate: string;
+  /** Inclusive ISO date of the last blocked night. */
+  endDate: string;
+  reason: string;
+  createdAt: number;
+}
+
+export type NewRoomBlockInput = Omit<RoomBlock, 'id' | 'createdAt'>;
+
+/** Admin-editable price override for a room category, persisted separately from the code defaults in roomsData.ts. */
+export interface RoomPricingOverride {
+  weekdayPrice: number;
+  weekendPrice: number;
+  updatedAt: number;
+}
+
 export type PaymentPlan = 'full' | '40percent' | 'custom';
 
 export type BookingMode = 'pay_at_resort' | 'pay_now';
@@ -114,6 +150,8 @@ export interface BookingRecord {
   checkOut: string;
   nights: number;
   quantity: number;
+  /** Labels of the specific rooms reserved, e.g. ["Room 201", "Room 205 (Family Room)"]. Empty for bookings made before per-room selection existed. */
+  units: string[];
   adults: number;
   children: number;
   extraBeds: number;

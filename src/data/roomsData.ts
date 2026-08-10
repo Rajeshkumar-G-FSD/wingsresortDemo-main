@@ -1,4 +1,4 @@
-import { RoomCategory } from '../types';
+import { RoomCategory, RoomUnit } from '../types';
 
 export const ROOM_CATEGORIES: RoomCategory[] = [
   {
@@ -7,7 +7,7 @@ export const ROOM_CATEGORIES: RoomCategory[] = [
     tagline: "The resort's largest private villa",
     description:
       'Our signature 3BHK villa is a private, self-contained retreat — a spacious 1,200 sq ft home with its own common hall and three attached bathrooms, built for big families and multi-generational getaways.',
-    roomCount: 1,
+    roomCount: 2,
     maxAdults: 12,
     extraBedAllowed: true,
     sizeSqft: 1200,
@@ -26,7 +26,7 @@ export const ROOM_CATEGORIES: RoomCategory[] = [
     tagline: 'Cozy villa living for families',
     description:
       'A warm 600 sq ft villa with its own common hall and sofa seating — ideal for two families travelling together, or a mid-sized group who still want a private, self-contained space.',
-    roomCount: 1,
+    roomCount: 7,
     maxAdults: 6,
     extraBedAllowed: true,
     sizeSqft: 600,
@@ -132,6 +132,62 @@ export const CAMPFIRE_CHARGE = 1500;
 
 export const formatINR = (amount: number): string =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+
+/**
+ * 2BHK Villa's seven numbered rooms don't share one occupancy — each is its own physical room with its own
+ * bed setup, per the resort's actual layout. Room 205 in particular is a full Family Room (2 king beds).
+ */
+const TWO_BHK_UNIT_SPECS: Record<number, { maxAdults: number; bedType: string; note: string }> = {
+  201: { maxAdults: 3, bedType: '1 King Size Bed', note: 'Single Room' },
+  202: { maxAdults: 3, bedType: '1 King Size Bed', note: 'Single Room' },
+  203: { maxAdults: 2, bedType: '1 King Size Bed', note: 'Double Occupancy' },
+  204: { maxAdults: 3, bedType: '1 King Size Bed', note: 'Single Room' },
+  205: { maxAdults: 6, bedType: '2 King Size Beds', note: 'Family Room' },
+  206: { maxAdults: 3, bedType: '1 King Size Bed', note: 'Single Room' },
+  207: { maxAdults: 3, bedType: '1 King Size Bed', note: 'Single Room' },
+};
+
+/**
+ * The individual, physically bookable rooms inside a category — what the admin dashboard blocks/unblocks
+ * and prices, and what guests pick from when booking. 2BHK Villa rooms are numbered 201–20N, each with its
+ * own occupancy (see TWO_BHK_UNIT_SPECS); every other multi-room category is Room 1..N sharing the
+ * category's occupancy; single-room categories (Couples-sized cabins, etc.) use the category name as the
+ * one unit.
+ */
+export const getRoomUnits = (room: RoomCategory): RoomUnit[] => {
+  if (room.id === '2bhk-villa') {
+    return Array.from({ length: room.roomCount }, (_, i) => {
+      const num = 201 + i;
+      const spec = TWO_BHK_UNIT_SPECS[num];
+      return { id: `${room.id}-${num}`, label: `Room ${num}`, maxAdults: spec?.maxAdults, bedType: spec?.bedType, note: spec?.note };
+    });
+  }
+  if (room.roomCount > 1) {
+    return Array.from({ length: room.roomCount }, (_, i) => ({ id: `${room.id}-r${i + 1}`, label: `Room ${i + 1}` }));
+  }
+  return [{ id: `${room.id}-main`, label: room.name }];
+};
+
+/** A unit's max guests — its own override if set, otherwise the category default. */
+export const getUnitMaxAdults = (room: RoomCategory, unit: RoomUnit): number => unit.maxAdults ?? room.maxAdults;
+
+/** A unit's bed configuration — its own override if set, otherwise the category default. */
+export const getUnitBedType = (room: RoomCategory, unit: RoomUnit): string => unit.bedType ?? room.bedType;
+
+/**
+ * Mutates the shared ROOM_CATEGORIES array in place with admin-set price overrides so every component that
+ * imported the array (site pages, booking modal) reflects the new price on their next render — no prop
+ * drilling needed. Callers should trigger a re-render (e.g. a counter bump in App.tsx) after calling this.
+ */
+export const applyPricingOverrides = (overrides: Record<string, { weekdayPrice: number; weekendPrice: number }>): void => {
+  ROOM_CATEGORIES.forEach((room) => {
+    const override = overrides[room.id];
+    if (override) {
+      room.weekdayPrice = override.weekdayPrice;
+      room.weekendPrice = override.weekendPrice;
+    }
+  });
+};
 
 const isDateInRanges = (dateISO: string, ranges: { start: string; end: string }[]): boolean =>
   ranges.some((range) => dateISO >= range.start && dateISO <= range.end);
