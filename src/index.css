@@ -214,9 +214,9 @@ html { scroll-behavior: smooth; }
   .attraction-card { transition: none; opacity: 1; transform: none; }
 }
 
-#footer h4, #footer p, #footer li, #footer label, #footer a, #footer button:not(.coral-gradient) { color: rgba(216, 207, 196, .85); }
-#footer h4 { color: #F5F0E8; }
-#footer input { color: #4A2E1C; }
+#footer h4, #footer p, #footer li, #footer label, #footer a, #footer button:not(.coral-gradient) { color: #3f4849; }
+#footer h4 { color: #004449; }
+#footer input { color: #004449; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {

@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
   };
 
   return (
-    <header className={`sticky top-0 z-50 w-full bg-[#4A2E1C] transition-all duration-300 ${scrolled ? 'shadow-sm py-4' : 'py-6'}`}>
+    <header className={`sticky top-0 z-50 w-full bg-[#fbf9f6] transition-all duration-300 ${scrolled ? 'shadow-sm py-4' : 'py-6'}`}>
       <div className="max-w-[1280px] mx-auto px-5 md:px-12 flex justify-between items-center">
         {/* Brand Logo */}
         <button
@@ -55,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
             <span className="block font-headline text-lg md:text-xl font-bold tracking-wide text-[#F0801A] uppercase">
               Wings Resort
             </span>
-            <span className="block text-[9px] font-semibold tracking-[0.24em] text-[#D8CFC4] uppercase mt-0.5">
+            <span className="block text-[9px] font-semibold tracking-[0.24em] text-[#3f4849] uppercase mt-0.5">
               Luxury Resort Living
             </span>
           </span>
@@ -72,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
                 className={`text-xs font-semibold uppercase tracking-[0.12em] transition-all duration-300 relative py-1 ${
                   isActive
                     ? 'text-[#F0801A] font-bold'
-                    : 'text-[#F5F0E8] hover:text-[#F0801A]'
+                    : 'text-[#004449] hover:text-[#F0801A]'
                 }`}
               >
                 {item.label}
@@ -90,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
             onClick={onOpenAdmin}
             aria-label="Admin login"
             title="Admin"
-            className="hidden lg:inline-flex h-9 w-9 items-center justify-center rounded-full text-[#D8CFC4] hover:bg-[#F0801A]/10 hover:text-[#F0801A] transition-colors"
+            className="hidden lg:inline-flex h-9 w-9 items-center justify-center rounded-full text-[#3f4849] hover:bg-[#F0801A]/10 hover:text-[#F0801A] transition-colors"
           >
             <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
           </button>
@@ -105,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-[#F5F0E8] focus:outline-none rounded-lg hover:bg-[#F0801A]/10"
+            className="lg:hidden p-2 text-[#004449] focus:outline-none rounded-lg hover:bg-[#F0801A]/10"
             aria-label="Toggle menu"
           >
             <span className="material-symbols-outlined text-3xl">
@@ -117,16 +117,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#4A2E1C] border-b border-[#7A5238] px-6 py-6 shadow-xl animate-fadeIn">
+        <div className="lg:hidden bg-[#fbf9f6] border-b border-[#e4e2df] px-6 py-6 shadow-xl animate-fadeIn">
           <div className="flex flex-col gap-5">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className="text-left text-base font-medium text-[#F5F0E8] hover:text-[#F0801A] py-2 border-b border-[#7A5238] flex items-center justify-between"
+                className="text-left text-base font-medium text-[#004449] hover:text-[#F0801A] py-2 border-b border-[#e4e2df] flex items-center justify-between"
               >
                 {item.label}
-                <span className="material-symbols-outlined text-sm text-[#D8CFC4]">chevron_right</span>
+                <span className="material-symbols-outlined text-sm text-[#3f4849]">chevron_right</span>
               </button>
             ))}
             <button
@@ -143,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenConsultation, activeSectio
                 setMobileMenuOpen(false);
                 onOpenAdmin();
               }}
-              className="flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#D8CFC4] hover:text-[#F0801A]"
+              className="flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#3f4849] hover:text-[#F0801A]"
             >
               <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
               Admin

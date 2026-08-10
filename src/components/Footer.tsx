@@ -13,9 +13,9 @@ const socialLinks = [
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
-    <footer id="footer" className="bg-[#4A2E1C] text-white pt-24 pb-6 md:pt-28">
+    <footer id="footer" className="bg-[#f5f3f0] text-[#1b1c1a] pt-24 pb-6 md:pt-28">
       <div className="max-w-[1280px] mx-auto px-5 md:px-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 pb-10 border-b border-white/15">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 pb-10 border-b border-[#e4e2df]">
           {/* Brand Col */}
           <div>
             <button onClick={() => onNavigate('hero')} className="flex items-center gap-3 mb-4 text-left">
@@ -28,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 <span className="font-headline text-xl font-bold tracking-tight text-[#F0801A] block leading-none uppercase">
                   Wings Resort
                 </span>
-                <span className="text-[9px] uppercase tracking-[0.24em] font-semibold text-[#D8CFC4]/80 block mt-1">
+                <span className="text-[9px] uppercase tracking-[0.24em] font-semibold text-[#6f797a] block mt-1">
                   Luxury Resort
                 </span>
               </span>
@@ -44,7 +44,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   target="_blank"
                   rel="noreferrer"
                   aria-label={label}
-                  className="text-[#D8CFC4] hover:text-[#F0801A] transition-colors"
+                  className="text-[#3f4849] hover:text-[#F0801A] transition-colors"
                 >
                   <Icon size={18} strokeWidth={1.75} />
                 </a>
@@ -54,7 +54,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
           {/* Explore */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-[#004449] mb-4">
               Explore
             </h4>
             <ul className="space-y-3 text-xs">
@@ -88,7 +88,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
           {/* Help */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-[#004449] mb-4">
               Help
             </h4>
             <ul className="space-y-3 text-xs">
@@ -122,7 +122,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-6 text-center text-[11px] text-white/70">
+        <div className="pt-6 text-center text-[11px] text-[#6f797a]">
           <p>© 2026 Wings Resort. All Rights Reserved.</p>
         </div>
       </div>
