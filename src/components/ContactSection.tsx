@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { CONTACT_INFO, GOOGLE_MAPS_PLACE_URL, GOOGLE_MAPS_EMBED_URL } from '../data/contactInfo';
 import SplitText from './SplitText';
 import BlurText from './BlurText';
@@ -46,12 +46,17 @@ export const ContactSection: React.FC = () => {
   const [form, setForm] = useState<ContactFormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<ContactFormErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleChange = (field: keyof ContactFormState) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    const { value } = e.target;
+    setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (field === 'phone' && value.replace(/\D/g, '').length === 10) {
+      messageInputRef.current?.focus();
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -190,6 +195,8 @@ export const ContactSection: React.FC = () => {
                   <input
                     id="contact-phone"
                     type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     value={form.phone}
                     onChange={handleChange('phone')}
                     aria-invalid={!!errors.phone}
@@ -203,6 +210,7 @@ export const ContactSection: React.FC = () => {
               <div>
                 <label htmlFor="contact-message" className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#004449]">Message</label>
                 <textarea
+                  ref={messageInputRef}
                   id="contact-message"
                   rows={4}
                   value={form.message}

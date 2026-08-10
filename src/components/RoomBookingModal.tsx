@@ -90,6 +90,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
   const [submitted, setSubmitted] = useState(false);
   const [bookingRef, setBookingRef] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
   // Room blocks are admin-set (maintenance, owner use); subscribed once so the unit picker below can grey them out live.
   useEffect(() => {
@@ -180,8 +181,12 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
   };
 
   const handleGuestChange = (field: keyof GuestFormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setGuest((prev) => ({ ...prev, [field]: e.target.value }));
+    const { value } = e.target;
+    setGuest((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (field === 'phone' && value.replace(/\D/g, '').length === 10) {
+      emailInputRef.current?.focus();
+    }
   };
 
   const validate = (): GuestFormErrors => {
@@ -491,6 +496,8 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                   <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">Phone</label>
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     value={guest.phone}
                     onChange={handleGuestChange('phone')}
                     className={`w-full rounded-xl border px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.phone ? 'border-[#c0392b]' : 'border-[#7A5238]'}`}
@@ -501,6 +508,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                 <div>
                   <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">Email</label>
                   <input
+                    ref={emailInputRef}
                     type="email"
                     value={guest.email}
                     onChange={handleGuestChange('email')}
