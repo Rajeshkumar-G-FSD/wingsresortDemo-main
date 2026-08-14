@@ -35,7 +35,7 @@ export const ROOM_CATEGORIES: RoomCategory[] = [
     weekdayPrice: 5500,
     weekendPrice: 7000,
     heroImage: '/images/wings_resort_mainbuilding.png',
-    gallery: ['/images/wings_resort_mainbuilding.png', '/images/wings_resort_2bhk_villa.png', '/images/wings_resort_rooms_frontview.png', '/images/wings_resort_5bh_rooms_frontview.png'],
+    gallery: ['/images/wings_resort_mainbuilding.png', '/images/wings_resort_2bhk_villa.png', '/images/wings_resort_rooms_frontview.png', '/images/wings_resort_5bh_rooms_frontview.png', '/images/wings_resort_wood_house_rooms_fontview.png'],
     amenities: ['2 King Size Beds', 'Common Hall & Sofa', '2 Western Toilets', '32" Flat-Screen TV', 'Free Wi-Fi', '24-Hour Hot Water', 'Parking Inside Campus'],
     badge: 'Family Favorite',
   },

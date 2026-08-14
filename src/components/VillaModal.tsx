@@ -41,7 +41,7 @@ export const VillaModal: React.FC<VillaModalProps> = ({ room, onClose, onBookDir
             </div>
             {room.gallery && room.gallery.length > 0 && (
               <div className="flex gap-3 overflow-x-auto pb-2">
-                {[room.heroImage, ...room.gallery].map((img, i) => (
+                {Array.from(new Set([room.heroImage, ...room.gallery])).map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveImg(img)}
