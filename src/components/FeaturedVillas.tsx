@@ -18,12 +18,12 @@ const featuredExtraRooms = ROOM_CATEGORIES.filter((r) => FEATURED_EXTRA_ROOM_IDS
 // different angle (e.g. the A-Type house, Five Bedroom house, and Wood House each show up once here;
 // the Wood House and 2BHK Villa get their one appearance as bookable cards below instead).
 const STATIC_PROPERTY_PHOTOS = [
-  { src: '/images/wings_resort_a_type_bedroom.png', label: 'A-Type Bedroom' },
-  { src: '/images/wings_resort_mainbuilding.png', label: 'Three Bedroom Residence' },
-  { src: '/images/wings_deluex_three_room.jpg.png', label: 'Deluxe Three Room Suite' },
-  { src: '/images/wings_resort_family_bed_room_2.png', label: 'Family Bed Room' },
-  { src: '/images/wings_resort_5bh_rooms_frontview.png', label: 'Five Bedroom House' },
-  { src: '/images/wings_resort_parking.png', label: 'Resort Grounds & Parking' },
+  { src: '/images/wings_resort_a_type_bedroom.png', label: 'A-Type Bedroom', roomId: 'a-type-wood-house' },
+  { src: '/images/wings_resort_mainbuilding.png', label: 'Three Bedroom Residence', roomId: '3bhk-villa' },
+  { src: '/images/wings_deluex_three_room.jpg.png', label: 'Deluxe Three Room Suite', roomId: '3bhk-villa' },
+  { src: '/images/wings_resort_family_bed_room_2.png', label: 'Family Bed Room', roomId: 'family-room' },
+  { src: '/images/wings_resort_5bh_rooms_frontview.png', label: 'Five Bedroom House', roomId: '3bhk-villa' },
+  { src: '/images/wings_resort_parking.png', label: 'Resort Grounds & Parking', roomId: '2bhk-villa' },
 ];
 
 interface FeaturedVillasProps {
@@ -207,7 +207,16 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
         {/* Villa Cards Grid */}
         <div ref={propertiesRef} className="properties-reveal grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {STATIC_PROPERTY_PHOTOS.map((photo) => (
-            <article key={photo.src} className="group flex flex-col overflow-hidden" aria-label={photo.label}>
+            <button
+              key={photo.src}
+              type="button"
+              onClick={() => {
+                const room = ROOM_CATEGORIES.find((category) => category.id === photo.roomId);
+                if (room) onSelectRoom(room);
+              }}
+              className="group flex flex-col overflow-hidden text-left"
+              aria-label={`View ${photo.label} details`}
+            >
               <div className="relative aspect-[1.22/1] w-full overflow-hidden rounded-sm">
                 <img src={photo.src} alt={`Wings Resort ${photo.label}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
               </div>
@@ -215,7 +224,7 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
                 <h3 className="text-[10px] font-bold uppercase tracking-[.08em] text-[#004449]">{photo.label}</h3>
                 <p className="mt-1 text-[8px] font-semibold uppercase tracking-wider text-[#3f4849]">Wings Resort</p>
               </div>
-            </article>
+            </button>
           ))}
           {featuredExtraRooms.map((room) => (
             <div
