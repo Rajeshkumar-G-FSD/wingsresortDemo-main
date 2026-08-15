@@ -19,10 +19,8 @@ const featuredExtraRooms = ROOM_CATEGORIES.filter((r) => FEATURED_EXTRA_ROOM_IDS
 // the Wood House and 2BHK Villa get their one appearance as bookable cards below instead).
 const STATIC_PROPERTY_PHOTOS = [
   { src: '/images/wings_resort_a_type_bedroom.png', label: 'A-Type Bedroom' },
-  { src: '/images/wings_resort_threebedroom.png', label: 'Three Bedroom Residence' },
+  { src: '/images/wings_resort_mainbuilding.png', label: 'Three Bedroom Residence' },
   { src: '/images/wings_deluex_three_room.jpg.png', label: 'Deluxe Three Room Suite' },
-  { src: '/images/wings_resort_couples_bed_room.png', label: 'Couples Bed Room' },
-  { src: '/images/wings_resort_family_bed_room.png', label: 'Family Bed Room' },
   { src: '/images/wings_resort_family_bed_room_2.png', label: 'Family Bed Room' },
   { src: '/images/wings_resort_5bh_rooms_frontview.png', label: 'Five Bedroom House' },
   { src: '/images/wings_resort_parking.png', label: 'Resort Grounds & Parking' },
