@@ -3,6 +3,15 @@ import { ROOM_CATEGORIES, formatINR, CAMPFIRE_CHARGE } from '../data/roomsData';
 import { RoomCategory } from '../types';
 import { DatePickerPopover, toISO } from './DatePickerPopover';
 
+const addDays = (iso: string, days: number) => {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  return toISO(d);
+};
+
+const today = toISO(new Date());
+const PHONE_PATTERN = /^[0-9]{10}$/;
+
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -23,10 +32,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [selectedRoomId, setSelectedRoomId] = useState<string>(
     preselectedRoom?.id || ROOM_CATEGORIES[0].id
   );
-  const [checkIn, setCheckIn] = useState('2026-09-10');
-  const [checkOut, setCheckOut] = useState('2026-09-15');
+  const [checkIn, setCheckIn] = useState(today);
+  const [checkOut, setCheckOut] = useState(addDays(today, 1));
   const [guests, setGuests] = useState(2);
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [specialRequests, setSpecialRequests] = useState('');
 
@@ -45,6 +55,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -121,13 +132,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const total = subtotal + addonTotal;
 
+  // Only Full Name and Mobile Number are mandatory — everything else on this form is optional.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const nextErrors: { name?: string; phone?: string } = {};
+    if (!name.trim()) nextErrors.name = 'Please enter your name.';
+    if (!phone.trim()) nextErrors.phone = 'Please enter your mobile number.';
+    else if (!PHONE_PATTERN.test(phone.trim().replace(/\s+/g, ''))) nextErrors.phone = 'Enter a valid 10-digit mobile number.';
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
     setSubmitted(true);
   };
 
   const handleReset = () => {
     setSubmitted(false);
+    setErrors({});
     onClose();
   };
 
@@ -216,6 +235,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   label="Check-In"
                   icon="calendar_month"
                   value={checkIn}
+                  minDate={today}
                   onSelect={handleCheckInSelect}
                   open={checkInOpen}
                   onOpenChange={(o) => {
@@ -227,7 +247,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   label="Check-Out"
                   icon="event_available"
                   value={checkOut}
-                  minDate={checkIn}
+                  minDate={checkIn ? addDays(checkIn, 1) : today}
                   onSelect={handleCheckOutSelect}
                   open={checkOutOpen}
                   onOpenChange={(o) => {
@@ -329,7 +349,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
             </div>
 
-            {/* Guest Contact Details */}
+            {/* Guest Contact Details — only Full Name and Mobile Number are required */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-1">
@@ -339,15 +359,33 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   type="text"
                   placeholder="e.g. Priya Sharma"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-white border border-[#e4e2df] text-xs font-medium text-[#004449] focus:outline-none focus:border-[#F0801A]"
+                  onChange={(e) => { setName(e.target.value); if (errors.name) setErrors((prev) => ({ ...prev, name: undefined })); }}
+                  className={`w-full p-3 rounded-xl bg-white border text-xs font-medium text-[#004449] focus:outline-none focus:border-[#F0801A] ${errors.name ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
                   required
                 />
+                {errors.name && <p className="mt-1 text-[10px] font-semibold text-[#c0392b]">{errors.name}</p>}
               </div>
 
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-1">
-                  Email Address
+                  Mobile Number
+                </label>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="10-digit mobile number"
+                  value={phone}
+                  onChange={(e) => { setPhone(e.target.value); if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined })); }}
+                  className={`w-full p-3 rounded-xl bg-white border text-xs font-medium text-[#004449] focus:outline-none focus:border-[#F0801A] ${errors.phone ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
+                  required
+                />
+                {errors.phone && <p className="mt-1 text-[10px] font-semibold text-[#c0392b]">{errors.phone}</p>}
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-1">
+                  Email Address (optional)
                 </label>
                 <input
                   type="email"
@@ -355,14 +393,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full p-3 rounded-xl bg-white border border-[#e4e2df] text-xs font-medium text-[#004449] focus:outline-none focus:border-[#F0801A]"
-                  required
                 />
               </div>
             </div>
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A] block mb-1">
-                Special Requests or Dietary Preferences
+                Special Requests or Dietary Preferences (optional)
               </label>
               <textarea
                 rows={2}

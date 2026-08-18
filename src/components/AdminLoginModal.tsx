@@ -7,7 +7,7 @@ interface AdminLoginModalProps {
 }
 
 const ADMIN_USERNAME = 'krazywingsresort@gmail.com';
-const ADMIN_PASSWORD = '123456';
+const ADMIN_PASSWORD = 'Krazy@8844';
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [username, setUsername] = useState('');

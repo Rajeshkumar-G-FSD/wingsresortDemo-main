@@ -1,7 +1,7 @@
 # Firebase Setup — Wings Resort Bookings
 
 The booking form and admin dashboard are wired to your Firebase project
-(`wingsresort-fd0cd`) via three Firestore collections: `bookings`,
+(`wingsresort-1063b`) via three Firestore collections: `bookings`,
 `roomBlocks` (admin block/unblock of individual rooms), and `roomPricing`
 (admin price overrides). Right now, saving a booking, blocking a room, or
 updating a price fails with **"Missing or insufficient permissions"** — this
@@ -16,7 +16,7 @@ don't have).
 
 ## Do this now: open Firestore, then set rules
 
-1. Go to the [Firebase Console](https://console.firebase.google.com/) → project **wingsresort-fd0cd**.
+1. Go to the [Firebase Console](https://console.firebase.google.com/) → project **wingsresort-1063b**.
 2. **Build → Firestore Database.** If you see a "Create database" button, click it once (any region close to India, e.g. `asia-south1`), start in **production mode**.
 3. Go to the **Rules** tab and replace the contents with the block below, then click **Publish**.
 
@@ -80,12 +80,24 @@ service cloud.firestore {
    the UI) instead of the hardcoded check — the guest-facing booking form
    doesn't need to change either way.
 
+## Email Notifications on Booking
+
+Every confirmed booking opens WhatsApp with the full details, and separately
+emails the same details to **reception@wingsresort.com** via
+[Web3Forms](https://web3forms.com) — a client-side form-to-email service, so
+it needs no Firestore collection, no SMTP, and no Firebase Console setup at
+all. See `src/lib/web3forms.ts`. (An earlier version of this routed through a
+Firestore `mail` collection + the Firebase "Trigger Email" extension — that's
+been replaced by Web3Forms, so there's no extension to install or SMTP to
+configure anymore.)
+
 ## What's already wired
 
 - `src/lib/firebase.ts` — Firebase app + Firestore client, using the config you gave.
 - `src/lib/bookingsRepo.ts` — `createBooking`, `subscribeToBookings` (realtime), `updateBookingStatus`, `deleteBooking`.
 - `src/lib/roomsRepo.ts` — `createRoomBlock`, `deleteRoomBlock`, `subscribeToRoomBlocks`, `updateRoomPricing`, `subscribeToRoomPricing`.
-- Booking form (`RoomBookingModal`) writes a document per booking request, then opens WhatsApp with the bill.
+- `src/lib/web3forms.ts` — `sendBookingEnquiryEmail`, emails reception via Web3Forms.
+- Booking form (`RoomBookingModal`) writes a document per booking request, opens WhatsApp with the bill, and emails reception the same details (best-effort — never blocks the booking if the email fails).
 - Admin dashboard (`AdminDashboardPage`) has two tabs:
   - **Bookings** — lists bookings in realtime, lets you change status or delete a booking.
   - **Rooms & Pricing** (`AdminRoomsPanel`) — edit each room category's weekday/weekend price (applies site-wide instantly), block/unblock individual rooms (3BHK Room 1–2, 2BHK Room 201–207, Couples Rooms 1–5, A Type Wood House, Wood House, Family Room) with a date range and reason, and a rolling 12-month calendar (per room) showing nightly rate + open/blocked dates.

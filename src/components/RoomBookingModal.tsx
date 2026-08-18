@@ -9,7 +9,7 @@ import {
   calculateRoomSubtotal,
   formatINR,
   getNightlyBreakdown,
-  getRoomUnits,
+  getGuestRoomUnits,
   getUnitMaxAdults,
 } from '../data/roomsData';
 import { CONTACT_INFO } from '../data/contactInfo';
@@ -17,6 +17,7 @@ import { PAYMENT_INFO, buildUpiPaymentString } from '../data/paymentInfo';
 import { DatePickerPopover, toISO } from './DatePickerPopover';
 import { QRCodeImage } from './QRCodeImage';
 import { createBooking } from '../lib/bookingsRepo';
+import { sendBookingEnquiryEmail } from '../lib/web3forms';
 import { subscribeToRoomBlocks } from '../lib/roomsRepo';
 
 /** A room unit is unavailable for a stay if any admin block on it overlaps the [checkIn, checkOut) range. */
@@ -103,7 +104,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
     setCheckOut(initialCheckOut);
     setAdults(Math.max(1, initialAdults));
     if (room) {
-      const roomUnits = getRoomUnits(room);
+      const roomUnits = getGuestRoomUnits(room);
       const firstAvailable = roomUnits.find((u) => !blocks.some((b) => b.unitId === u.id && unitOverlapsBlock(b, initialCheckIn, initialCheckOut)));
       setSelectedUnitIds(firstAvailable ? [firstAvailable.id] : roomUnits.length > 0 ? [roomUnits[0].id] : []);
     } else {
@@ -138,7 +139,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
 
   if (!room) return null;
 
-  const units = getRoomUnits(room);
+  const units = getGuestRoomUnits(room);
   const selectedUnits = units.filter((u) => selectedUnitIds.includes(u.id));
   const unitDisplayLabels = selectedUnits.map((u) => (u.note ? `${u.label} (${u.note})` : u.label));
   const quantity = selectedUnitIds.length;
@@ -189,14 +190,13 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
     }
   };
 
+  // Only name and phone are mandatory — email and address are optional, but still format-checked if filled in.
   const validate = (): GuestFormErrors => {
     const next: GuestFormErrors = {};
     if (!guest.name.trim()) next.name = 'Please enter your name.';
-    if (!guest.email.trim()) next.email = 'Please enter your email.';
-    else if (!EMAIL_PATTERN.test(guest.email.trim())) next.email = 'Enter a valid email address.';
     if (!guest.phone.trim()) next.phone = 'Please enter your phone number.';
     else if (!PHONE_PATTERN.test(guest.phone.trim().replace(/\s+/g, ''))) next.phone = 'Enter a valid 10-digit phone number.';
-    if (!guest.address.trim()) next.address = 'Please enter your address.';
+    if (guest.email.trim() && !EMAIL_PATTERN.test(guest.email.trim())) next.email = 'Enter a valid email address.';
     return next;
   };
 
@@ -288,9 +288,9 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
         `Bank: ${PAYMENT_INFO.bankName}, A/C ${PAYMENT_INFO.accountNumber}, IFSC ${PAYMENT_INFO.ifsc}`,
         '',
         `Name: ${guest.name}`,
-        `Email: ${guest.email}`,
         `Phone: ${guest.phone}`,
-        `Address: ${guest.address}`,
+        guest.email.trim() ? `Email: ${guest.email}` : null,
+        guest.address.trim() ? `Address: ${guest.address}` : null,
         guest.specialRequests ? `Special requests: ${guest.specialRequests}` : null,
         '',
         hasTransactionProof || bookingMode === 'pay_at_resort'
@@ -299,6 +299,20 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
       ].filter(Boolean).join('\n');
 
       window.open(`https://wa.me/91${CONTACT_INFO.whatsapp}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+
+      // Best-effort: also email reception via Web3Forms with the same details. Never blocks the booking or
+      // surfaces an error to the guest if it fails — WhatsApp is still the guaranteed channel.
+      sendBookingEnquiryEmail({
+        name: guest.name,
+        email: guest.email,
+        phone: guest.phone,
+        checkIn,
+        checkOut,
+        guests: adults + children,
+        message,
+        subject: `New Booking — ${room.name} (Ref ${ref})`,
+      }).catch(() => {});
+
       setSubmitted(true);
     } catch (err) {
       setSubmitError('We could not save your booking just now. Please try again, or message us directly on WhatsApp.');
@@ -321,15 +335,15 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fadeIn sm:p-6" onClick={onClose}>
       <div
-        className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-[#7A5238] bg-[#4A2E1C] shadow-2xl"
+        className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-[#e4e2df] bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between bg-[#4A2E1C] p-6 text-white sm:p-8">
+        <div className="flex items-center justify-between border-b border-[#e4e2df] bg-white p-6 sm:p-8">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#D8CFC4]">{submitted ? 'Request Sent' : 'Book This Room'}</span>
-            <h2 className="mt-1 font-headline text-2xl font-semibold sm:text-3xl">{room.name}</h2>
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#3f4849]">{submitted ? 'Request Sent' : 'Book This Room'}</span>
+            <h2 className="mt-1 font-headline text-2xl font-semibold text-[#004449] sm:text-3xl">{room.name}</h2>
           </div>
-          <button onClick={onClose} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20" aria-label="Close">
+          <button onClick={onClose} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f5f3f0] text-[#004449] transition-colors hover:bg-[#e4e2df]" aria-label="Close">
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
@@ -340,13 +354,13 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#F0801A]/10 text-[#F0801A]">
                 <span className="material-symbols-outlined text-5xl">task_alt</span>
               </div>
-              <h3 className="font-headline text-2xl font-bold text-[#F5F0E8]">Your Request Is On Its Way</h3>
+              <h3 className="font-headline text-2xl font-bold text-[#004449]">Your Request Is On Its Way</h3>
               {bookingRef && (
-                <p className="inline-block rounded-full bg-[#6B4530] px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">
+                <p className="inline-block rounded-full bg-[#f5f3f0] px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-[#004449]">
                   Booking Ref: {bookingRef}
                 </p>
               )}
-              <p className="mx-auto max-w-md text-sm leading-relaxed text-[#D8CFC4]">
+              <p className="mx-auto max-w-md text-sm leading-relaxed text-[#6f797a]">
                 {bookingMode === 'pay_at_resort'
                   ? `We saved your ${room.name} booking for ${checkIn} to ${checkOut} and opened WhatsApp with the full bill. You can pay the full amount directly at the resort during check-in.`
                   : hasTransactionProof
@@ -392,7 +406,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
               <div>
                 <div className="mb-2 flex items-center justify-between">
                   <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A]">Select Room(s)</label>
-                  <span className="rounded-full bg-[#6B4530] px-2.5 py-1 text-[10px] font-bold text-[#F5F0E8]">{quantity} selected</span>
+                  <span className="rounded-full bg-[#f5f3f0] px-2.5 py-1 text-[10px] font-bold text-[#004449]">{quantity} selected</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                   {units.map((unit) => {
@@ -407,10 +421,10 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                         onClick={() => toggleUnit(unit.id)}
                         className={`relative flex h-full flex-col items-start gap-0.5 rounded-xl border px-3.5 py-3 text-left transition-colors ${
                           blocked
-                            ? 'cursor-not-allowed border-[#7A5238]/60 bg-[#6B4530]/40 opacity-50'
+                            ? 'cursor-not-allowed border-[#e4e2df]/60 bg-[#f5f3f0]/40 opacity-50'
                             : isSelected
                               ? 'border-[#F0801A] bg-[#F0801A] text-[#2B1810] shadow-md'
-                              : 'border-[#7A5238] bg-[#6B4530] text-[#F5F0E8] hover:border-[#F0801A]'
+                              : 'border-[#e4e2df] bg-[#f5f3f0] text-[#004449] hover:border-[#F0801A]'
                         }`}
                       >
                         {isSelected && !blocked && (
@@ -419,7 +433,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                           </span>
                         )}
                         <span className="pr-4 text-xs font-bold leading-tight">{unit.label}</span>
-                        <span className={`text-[10px] leading-snug ${isSelected ? 'text-[#2B1810]/70' : 'text-[#D8CFC4]/70'}`}>
+                        <span className={`text-[10px] leading-snug ${isSelected ? 'text-[#2B1810]/70' : 'text-[#6f797a]/70'}`}>
                           {blocked ? 'Not available' : `Up to ${unitMax} adult${unitMax > 1 ? 's' : ''}`}{!blocked && unit.note ? ` · ${unit.note}` : ''}
                         </span>
                       </button>
@@ -433,42 +447,42 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
 
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F5F0E8]">Adults</label>
-                  <div className="flex items-center rounded-xl border border-[#7A5238] bg-[#6B4530]">
-                    <button type="button" onClick={() => handleAdultsChange(adults - 1)} className="px-3 py-2.5 text-[#F5F0E8] disabled:opacity-30" disabled={adults <= 1}>−</button>
-                    <span className="flex-1 text-center text-sm font-semibold text-[#F5F0E8]">{adults}</span>
-                    <button type="button" onClick={() => handleAdultsChange(adults + 1)} className="px-3 py-2.5 text-[#F5F0E8]">+</button>
+                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F0801A]">Adults</label>
+                  <div className="flex items-center rounded-xl border border-[#e4e2df] bg-[#f5f3f0]">
+                    <button type="button" onClick={() => handleAdultsChange(adults - 1)} className="px-3 py-2.5 text-[#004449] disabled:opacity-30" disabled={adults <= 1}>−</button>
+                    <span className="flex-1 text-center text-sm font-semibold text-[#004449]">{adults}</span>
+                    <button type="button" onClick={() => handleAdultsChange(adults + 1)} className="px-3 py-2.5 text-[#004449]">+</button>
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F5F0E8]">Children</label>
-                  <div className="flex items-center rounded-xl border border-[#7A5238] bg-[#6B4530]">
-                    <button type="button" onClick={() => setChildren(Math.max(0, children - 1))} className="px-3 py-2.5 text-[#F5F0E8] disabled:opacity-30" disabled={children <= 0}>−</button>
-                    <span className="flex-1 text-center text-sm font-semibold text-[#F5F0E8]">{children}</span>
-                    <button type="button" onClick={() => setChildren(children + 1)} className="px-3 py-2.5 text-[#F5F0E8]">+</button>
+                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F0801A]">Children</label>
+                  <div className="flex items-center rounded-xl border border-[#e4e2df] bg-[#f5f3f0]">
+                    <button type="button" onClick={() => setChildren(Math.max(0, children - 1))} className="px-3 py-2.5 text-[#004449] disabled:opacity-30" disabled={children <= 0}>−</button>
+                    <span className="flex-1 text-center text-sm font-semibold text-[#004449]">{children}</span>
+                    <button type="button" onClick={() => setChildren(children + 1)} className="px-3 py-2.5 text-[#004449]">+</button>
                   </div>
                 </div>
                 {room.extraBedAllowed && (
                   <div>
-                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F5F0E8]">Extra Beds</label>
-                    <div className="flex items-center rounded-xl border border-[#7A5238] bg-[#6B4530]">
-                      <button type="button" onClick={() => setExtraBeds(Math.max(0, extraBeds - 1))} className="px-3 py-2.5 text-[#F5F0E8] disabled:opacity-30" disabled={extraBeds <= 0}>−</button>
-                      <span className="flex-1 text-center text-sm font-semibold text-[#F5F0E8]">{extraBeds}</span>
-                      <button type="button" onClick={() => setExtraBeds(Math.min(3, extraBeds + 1))} className="px-3 py-2.5 text-[#F5F0E8]">+</button>
+                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F0801A]">Extra Beds</label>
+                    <div className="flex items-center rounded-xl border border-[#e4e2df] bg-[#f5f3f0]">
+                      <button type="button" onClick={() => setExtraBeds(Math.max(0, extraBeds - 1))} className="px-3 py-2.5 text-[#004449] disabled:opacity-30" disabled={extraBeds <= 0}>−</button>
+                      <span className="flex-1 text-center text-sm font-semibold text-[#004449]">{extraBeds}</span>
+                      <button type="button" onClick={() => setExtraBeds(Math.min(3, extraBeds + 1))} className="px-3 py-2.5 text-[#004449]">+</button>
                     </div>
                   </div>
                 )}
               </div>
               {occupancyError && <p className="text-xs font-semibold text-[#c0392b]">{occupancyError}</p>}
-              <p className="text-xs text-[#D8CFC4]/70">Children below {CHILD_FREE_AGE} years stay free. Combined capacity of the room(s) you select: {maxOccupancy} adult{maxOccupancy > 1 ? 's' : ''}.</p>
+              <p className="text-xs text-[#6f797a]/70">Children below {CHILD_FREE_AGE} years stay free. Combined capacity of the room(s) you select: {maxOccupancy} adult{maxOccupancy > 1 ? 's' : ''}.</p>
 
               {/* Campfire add-on */}
-              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#7A5238] bg-[#6B4530] px-4 py-3">
+              <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#e4e2df] bg-[#f5f3f0] px-4 py-3">
                 <span className="flex items-center gap-2.5">
                   <span className="material-symbols-outlined text-lg text-[#F0801A]">local_fire_department</span>
                   <span>
-                    <span className="block text-xs font-bold text-[#F5F0E8]">Add Campfire Experience</span>
-                    <span className="block text-[11px] text-[#D8CFC4]/70">One-time evening campfire, {formatINR(CAMPFIRE_CHARGE)}</span>
+                    <span className="block text-xs font-bold text-[#004449]">Add Campfire Experience</span>
+                    <span className="block text-[11px] text-[#6f797a]/70">One-time evening campfire, {formatINR(CAMPFIRE_CHARGE)}</span>
                   </span>
                 </span>
                 <input
@@ -482,48 +496,48 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
               {/* Guest details */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">Full Name</label>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Full Name</label>
                   <input
                     type="text"
                     value={guest.name}
                     onChange={handleGuestChange('name')}
-                    className={`w-full rounded-xl border px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.name ? 'border-[#c0392b]' : 'border-[#7A5238]'}`}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.name ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
                     placeholder="Your name"
                   />
                   {errors.name && <p className="mt-1 text-xs text-[#c0392b]">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">Phone</label>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Phone</label>
                   <input
                     type="tel"
                     inputMode="numeric"
                     maxLength={10}
                     value={guest.phone}
                     onChange={handleGuestChange('phone')}
-                    className={`w-full rounded-xl border px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.phone ? 'border-[#c0392b]' : 'border-[#7A5238]'}`}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.phone ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
                     placeholder="10-digit mobile number"
                   />
                   {errors.phone && <p className="mt-1 text-xs text-[#c0392b]">{errors.phone}</p>}
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">Email</label>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Email (optional)</label>
                   <input
                     ref={emailInputRef}
                     type="email"
                     value={guest.email}
                     onChange={handleGuestChange('email')}
-                    className={`w-full rounded-xl border px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.email ? 'border-[#c0392b]' : 'border-[#7A5238]'}`}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.email ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
                     placeholder="you@example.com"
                   />
                   {errors.email && <p className="mt-1 text-xs text-[#c0392b]">{errors.email}</p>}
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">Address</label>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Address (optional)</label>
                   <input
                     type="text"
                     value={guest.address}
                     onChange={handleGuestChange('address')}
-                    className={`w-full rounded-xl border px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.address ? 'border-[#c0392b]' : 'border-[#7A5238]'}`}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.address ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
                     placeholder="City, State"
                   />
                   {errors.address && <p className="mt-1 text-xs text-[#c0392b]">{errors.address}</p>}
@@ -531,12 +545,12 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">Special Requests (optional)</label>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Special Requests (optional)</label>
                 <textarea
                   rows={2}
                   value={guest.specialRequests}
                   onChange={handleGuestChange('specialRequests')}
-                  className="w-full resize-none rounded-xl border border-[#7A5238] px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30"
+                  className="w-full resize-none rounded-xl border border-[#e4e2df] px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30"
                   placeholder="Celebrating something? Need an early check-in? Let us know."
                 />
               </div>
@@ -553,13 +567,13 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                         type="button"
                         onClick={() => { setBookingMode(option.id); setPaymentError(null); }}
                         className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-colors ${
-                          isActive ? 'border-[#F0801A] bg-[#F0801A] text-[#2B1810]' : 'border-[#7A5238] bg-[#6B4530] text-[#F5F0E8] hover:border-[#F0801A]'
+                          isActive ? 'border-[#F0801A] bg-[#F0801A] text-[#2B1810]' : 'border-[#e4e2df] bg-[#f5f3f0] text-[#004449] hover:border-[#F0801A]'
                         }`}
                       >
                         <span className="material-symbols-outlined text-lg">{option.icon}</span>
                         <span>
                           <span className="block text-xs font-bold">{option.label}</span>
-                          <span className={`block text-[10px] ${isActive ? 'text-white/75' : 'text-[#D8CFC4]/70'}`}>{option.helper}</span>
+                          <span className={`block text-[10px] ${isActive ? 'text-white/75' : 'text-[#6f797a]/70'}`}>{option.helper}</span>
                         </span>
                       </button>
                     );
@@ -567,7 +581,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                 </div>
 
                 {bookingMode === 'pay_at_resort' ? (
-                  <p className="mt-3 rounded-xl bg-[#6B4530] px-4 py-3 text-xs text-[#F5F0E8]">
+                  <p className="mt-3 rounded-xl bg-[#f5f3f0] px-4 py-3 text-xs text-[#004449]">
                     You'll pay the full amount of <strong>{formatINR(total)}</strong> directly at the resort during check-in. No payment needed now — we'll just reserve your dates.
                   </p>
                 ) : (
@@ -582,7 +596,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                             type="button"
                             onClick={() => { setPaymentPlan(option.id); setPaymentError(null); }}
                             className={`flex-1 rounded-full border px-3 py-2 text-center text-[11px] font-bold transition-colors ${
-                              isActive ? 'border-[#F0801A] bg-[#F0801A] text-[#2B1810]' : 'border-[#7A5238] bg-[#6B4530] text-[#F5F0E8] hover:border-[#F0801A]'
+                              isActive ? 'border-[#F0801A] bg-[#F0801A] text-[#2B1810]' : 'border-[#e4e2df] bg-[#f5f3f0] text-[#004449] hover:border-[#F0801A]'
                             }`}
                           >
                             {option.short}
@@ -593,14 +607,14 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
 
                     {paymentPlan === 'custom' && (
                       <div className="mt-3">
-                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">Amount to Pay Now (₹)</label>
+                        <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Amount to Pay Now (₹)</label>
                         <input
                           type="number"
                           min={1}
                           max={total}
                           value={customAmount}
                           onChange={(e) => { setCustomAmount(e.target.value); setPaymentError(null); }}
-                          className={`w-full rounded-xl border px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${paymentError ? 'border-[#c0392b]' : 'border-[#7A5238]'}`}
+                          className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${paymentError ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
                           placeholder={`Up to ${formatINR(total)}`}
                         />
                       </div>
@@ -608,15 +622,15 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                     {paymentError && <p className="mt-1.5 text-xs font-semibold text-[#c0392b]">{paymentError}</p>}
 
                     <div className="mt-3">
-                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F5F0E8]">Transaction ID / UTR Reference</label>
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Transaction ID / UTR Reference</label>
                       <input
                         type="text"
                         value={transactionId}
                         onChange={(e) => setTransactionId(e.target.value)}
-                        className="w-full rounded-xl border border-[#7A5238] px-4 py-3 text-sm text-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30"
+                        className="w-full rounded-xl border border-[#e4e2df] px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30"
                         placeholder="Paid already? Enter your UPI/bank reference number"
                       />
-                      <p className="mt-1.5 text-[11px] text-[#D8CFC4]/70">
+                      <p className="mt-1.5 text-[11px] text-[#6f797a]/70">
                         Already paid via the QR/UPI/bank details below? Enter the transaction ID so we can confirm it instantly. Without one, this booking is recorded as unpaid until you share it.
                       </p>
                     </div>
@@ -625,33 +639,33 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
               </div>
 
               {/* Stay details summary / bill */}
-              <div className="rounded-2xl border border-[#7A5238] bg-[#6B4530] p-5 sm:p-6">
-                <p className="mb-4 border-b border-[#7A5238] pb-3 text-xs font-bold uppercase tracking-widest text-[#F5F0E8]">Stay Details Summary</p>
+              <div className="rounded-2xl border border-[#e4e2df] bg-[#f5f3f0] p-5 sm:p-6">
+                <p className="mb-4 border-b border-[#e4e2df] pb-3 text-xs font-bold uppercase tracking-widest text-[#004449]">Stay Details Summary</p>
 
                 <div className="mb-4 flex items-center gap-3">
                   <img src={room.heroImage} alt={room.name} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
                   <div>
                     <span className="block text-[10px] font-bold uppercase tracking-wide text-[#F0801A]">Selected Suite</span>
-                    <span className="block text-sm font-bold text-[#F5F0E8]">{room.name}</span>
-                    <span className="block text-xs text-[#D8CFC4]/70">{formatINR(room.weekdayPrice)} / night onwards</span>
+                    <span className="block text-sm font-bold text-[#004449]">{room.name}</span>
+                    <span className="block text-xs text-[#6f797a]/70">{formatINR(room.weekdayPrice)} / night onwards</span>
                   </div>
                 </div>
 
                 <div className="mb-3 space-y-1.5 text-xs">
-                  <div className="flex justify-between"><span className="text-[#D8CFC4]/70">Stay Duration</span><span className="font-bold text-[#F5F0E8]">{nights} Night{nights > 1 ? 's' : ''}</span></div>
-                  <div className="flex justify-between"><span className="text-[#D8CFC4]/70">Stay Dates</span><span className="font-bold text-[#F5F0E8]">{checkIn || '—'} to {checkOut || '—'}</span></div>
+                  <div className="flex justify-between"><span className="text-[#6f797a]/70">Stay Duration</span><span className="font-bold text-[#004449]">{nights} Night{nights > 1 ? 's' : ''}</span></div>
+                  <div className="flex justify-between"><span className="text-[#6f797a]/70">Stay Dates</span><span className="font-bold text-[#004449]">{checkIn || '—'} to {checkOut || '—'}</span></div>
                 </div>
 
-                <div className="mb-3 grid grid-cols-2 gap-3 rounded-xl bg-[#6B4530] p-3 text-xs">
-                  <div><span className="block text-[#D8CFC4]/70">Adults</span><span className="font-bold text-[#F5F0E8]">{adults}</span></div>
-                  <div><span className="block text-[#D8CFC4]/70">Total Guests</span><span className="font-bold text-[#F5F0E8]">{adults + children}</span></div>
+                <div className="mb-3 grid grid-cols-2 gap-3 rounded-xl bg-[#f5f3f0] p-3 text-xs">
+                  <div><span className="block text-[#6f797a]/70">Adults</span><span className="font-bold text-[#004449]">{adults}</span></div>
+                  <div><span className="block text-[#6f797a]/70">Total Guests</span><span className="font-bold text-[#004449]">{adults + children}</span></div>
                 </div>
 
-                <div className="mb-3 flex justify-between text-xs"><span className="text-[#D8CFC4]/70">Room(s) Booked</span><span className="font-bold text-[#F5F0E8]">{unitDisplayLabels.join(', ') || '—'}</span></div>
+                <div className="mb-3 flex justify-between text-xs"><span className="text-[#6f797a]/70">Room(s) Booked</span><span className="font-bold text-[#004449]">{unitDisplayLabels.join(', ') || '—'}</span></div>
 
-                <div className="space-y-2 rounded-xl bg-[#6B4530] p-4 text-xs">
+                <div className="space-y-2 rounded-xl bg-[#f5f3f0] p-4 text-xs">
                   {breakdown.map((night) => (
-                    <div key={night.date} className="flex justify-between text-[#D8CFC4]">
+                    <div key={night.date} className="flex justify-between text-[#6f797a]">
                       <span>
                         {night.date} {night.isWeekend && <span className="ml-1 rounded-full bg-[#F0801A]/15 px-2 py-0.5 text-[9px] font-bold uppercase text-[#F0801A]">Weekend</span>}
                       </span>
@@ -659,30 +673,30 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                     </div>
                   ))}
                   {extraBeds > 0 && (
-                    <div className="flex justify-between text-[#D8CFC4]">
+                    <div className="flex justify-between text-[#6f797a]">
                       <span>Extra bed ({extraBeds} × {nights} night{nights > 1 ? 's' : ''})</span>
                       <span>{formatINR(extraBedTotal)}</span>
                     </div>
                   )}
                   {campfire && (
-                    <div className="flex justify-between text-[#D8CFC4]">
+                    <div className="flex justify-between text-[#6f797a]">
                       <span>Campfire Experience</span>
                       <span>{formatINR(campfireTotal)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between border-t border-[#7A5238] pt-2 text-sm font-bold text-[#F5F0E8]">
+                  <div className="flex justify-between border-t border-[#e4e2df] pt-2 text-sm font-bold text-[#004449]">
                     <span>TOTAL</span>
                     <span>{formatINR(total)}</span>
                   </div>
 
-                  <div className="mt-1 border-t border-[#7A5238] pt-2">
-                    <span className="block text-[10px] font-bold uppercase tracking-wide text-[#D8CFC4]/70">
+                  <div className="mt-1 border-t border-[#e4e2df] pt-2">
+                    <span className="block text-[10px] font-bold uppercase tracking-wide text-[#6f797a]/70">
                       {bookingMode === 'pay_at_resort' ? 'Pay at Resort' : PAYMENT_PLAN_OPTIONS.find((p) => p.id === paymentPlan)?.label}
                     </span>
                     {bookingMode === 'pay_at_resort' ? (
                       <div className="mt-1 flex justify-between">
-                        <span className="font-bold text-[#F5F0E8]">Due at Check-In</span>
-                        <span className="font-bold text-[#F5F0E8]">{formatINR(total)}</span>
+                        <span className="font-bold text-[#004449]">Due at Check-In</span>
+                        <span className="font-bold text-[#004449]">{formatINR(total)}</span>
                       </div>
                     ) : (
                       <>
@@ -694,7 +708,7 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                           <p className="mt-1 text-[10px] font-semibold text-[#c17a1f]">No transaction ID yet — this books as ₹0 paid until you add one.</p>
                         )}
                         {balanceDue > 0 && hasTransactionProof && (
-                          <div className="mt-1 flex justify-between text-[#D8CFC4]/70">
+                          <div className="mt-1 flex justify-between text-[#6f797a]/70">
                             <span>Balance at property</span>
                             <span>{formatINR(balanceDue)}</span>
                           </div>
@@ -705,26 +719,26 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
                 </div>
               </div>
 
-              <p className="text-xs text-[#D8CFC4]/70">
-                Free cancellation until <strong className="text-[#F5F0E8]">{cancellationDeadline || '—'}</strong> (5 days before check-in).
+              <p className="text-xs text-[#6f797a]/70">
+                Free cancellation until <strong className="text-[#004449]">{cancellationDeadline || '—'}</strong> (5 days before check-in).
               </p>
 
               {/* Payment details: QR + bank/UPI */}
               {bookingMode === 'pay_now' && (
-                <div className="rounded-2xl border border-[#7A5238] bg-[#6B4530] p-4 sm:p-5">
-                  <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#F5F0E8]">Scan &amp; Pay</p>
+                <div className="rounded-2xl border border-[#e4e2df] bg-[#f5f3f0] p-4 sm:p-5">
+                  <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#004449]">Scan &amp; Pay</p>
                   <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-                    <div className="shrink-0 rounded-xl border border-[#7A5238] p-2">
+                    <div className="shrink-0 rounded-xl border border-[#e4e2df] p-2">
                       <QRCodeImage value={upiPaymentString || PAYMENT_INFO.upiId} size={140} />
                     </div>
-                    <div className="w-full space-y-1.5 text-xs text-[#D8CFC4]">
-                      <div className="flex justify-between"><span className="text-[#D8CFC4]/70">Merchant</span><span className="font-semibold text-[#F5F0E8]">{PAYMENT_INFO.payeeName}</span></div>
-                      <div className="flex justify-between"><span className="text-[#D8CFC4]/70">UPI ID</span><span className="font-semibold text-[#F5F0E8]">{PAYMENT_INFO.upiId}</span></div>
-                      <div className="flex justify-between"><span className="text-[#D8CFC4]/70">Bank</span><span className="font-semibold text-[#F5F0E8]">{PAYMENT_INFO.bankName}</span></div>
-                      <div className="flex justify-between"><span className="text-[#D8CFC4]/70">Account No.</span><span className="font-semibold text-[#F5F0E8]">{PAYMENT_INFO.accountNumber}</span></div>
-                      <div className="flex justify-between"><span className="text-[#D8CFC4]/70">IFSC</span><span className="font-semibold text-[#F5F0E8]">{PAYMENT_INFO.ifsc}</span></div>
-                      <div className="flex justify-between"><span className="text-[#D8CFC4]/70">Full payment</span><span className="font-semibold text-[#0e5d63]">Available</span></div>
-                      <p className="pt-1.5 text-[11px] leading-relaxed text-[#D8CFC4]/70">
+                    <div className="w-full space-y-1.5 text-xs text-[#6f797a]">
+                      <div className="flex justify-between"><span className="text-[#6f797a]/70">Merchant</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.payeeName}</span></div>
+                      <div className="flex justify-between"><span className="text-[#6f797a]/70">UPI ID</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.upiId}</span></div>
+                      <div className="flex justify-between"><span className="text-[#6f797a]/70">Bank</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.bankName}</span></div>
+                      <div className="flex justify-between"><span className="text-[#6f797a]/70">Account No.</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.accountNumber}</span></div>
+                      <div className="flex justify-between"><span className="text-[#6f797a]/70">IFSC</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.ifsc}</span></div>
+                      <div className="flex justify-between"><span className="text-[#6f797a]/70">Full payment</span><span className="font-semibold text-[#0e5d63]">Available</span></div>
+                      <p className="pt-1.5 text-[11px] leading-relaxed text-[#6f797a]/70">
                         Scan with GPay, PhonePe, Paytm or any UPI app, or transfer directly via bank details. After paying, enter your transaction ID above so we can confirm your booking.
                       </p>
                     </div>
@@ -748,19 +762,19 @@ export const RoomBookingModal: React.FC<RoomBookingModalProps> = ({ room, checkI
         {/* Zero-payment confirmation alert */}
         {showZeroPaymentConfirm && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 p-6" onClick={() => setShowZeroPaymentConfirm(false)}>
-            <div className="w-full max-w-sm rounded-2xl bg-[#6B4530] p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-sm rounded-2xl border border-[#e4e2df] bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#f5e6c8] text-[#8a6d1f]">
                 <span className="material-symbols-outlined text-2xl">warning</span>
               </div>
-              <h3 className="text-center font-headline text-lg font-bold text-[#F5F0E8]">No Transaction ID Added</h3>
-              <p className="mt-2 text-center text-xs leading-relaxed text-[#D8CFC4]">
+              <h3 className="text-center font-headline text-lg font-bold text-[#004449]">No Transaction ID Added</h3>
+              <p className="mt-2 text-center text-xs leading-relaxed text-[#6f797a]">
                 You haven't entered a transaction ID, so this booking will be recorded as <strong>₹0 paid</strong> until you confirm payment. You can still book now and pay later.
               </p>
               <div className="mt-5 flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={() => setShowZeroPaymentConfirm(false)}
-                  className="w-full rounded-full border border-[#F0801A] py-3 text-xs font-bold uppercase tracking-wide text-[#F5F0E8] hover:bg-[#6B4530]"
+                  className="w-full rounded-full border border-[#F0801A] py-3 text-xs font-bold uppercase tracking-wide text-[#F0801A] hover:bg-[#F0801A] hover:text-white"
                 >
                   Go Back &amp; Add Transaction ID
                 </button>

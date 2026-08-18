@@ -10,19 +10,21 @@ const addDays = (iso: string, days: number) => {
   return toISO(d);
 };
 
+const today = toISO(new Date());
+
 // Two extra bookable room categories to round out the static Wings Resort photo grid below.
 const FEATURED_EXTRA_ROOM_IDS = ['2bhk-villa', 'wood-house'];
 const featuredExtraRooms = ROOM_CATEGORIES.filter((r) => FEATURED_EXTRA_ROOM_IDS.includes(r.id));
 
 // One photo per distinct Wings Resort property/room type — no repeats of the same property from a
-// different angle (e.g. the A-Type house, Five Bedroom house, and Wood House each show up once here;
-// the Wood House and 2BHK Villa get their one appearance as bookable cards below instead).
+// different angle (e.g. the A-Type house and Wood House each show up once here; the Wood House and
+// 2BHK Villa get their one appearance as bookable cards below instead). The Five Bedroom House card
+// (mapped to 3bhk-villa) has been removed from this grid.
 const STATIC_PROPERTY_PHOTOS = [
-  { src: '/images/wings_resort_a_type_bedroom.png', label: 'A-Type Bedroom', roomId: 'a-type-wood-house' },
+  { src: '/images/wings_resort_a_type_house.jpg', label: 'A-Type Bedroom', roomId: 'a-type-wood-house' },
   { src: '/images/wings_resort_mainbuilding.png', label: 'Three Bedroom Residence', roomId: '3bhk-villa' },
   { src: '/images/wings_deluex_three_room.jpg.png', label: 'Deluxe Three Room Suite', roomId: '3bhk-villa' },
   { src: '/images/wings_resort_family_bed_room_2.png', label: 'Family Bed Room', roomId: 'family-room' },
-  { src: '/images/wings_resort_5bh_rooms_frontview.png', label: 'Five Bedroom House', roomId: '3bhk-villa' },
   { src: '/images/wings_resort_parking.png', label: 'Resort Grounds & Parking', roomId: '2bhk-villa' },
 ];
 
@@ -41,8 +43,8 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   onViewAllRooms,
   openCheckInTrigger
 }) => {
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
+  const [checkIn, setCheckIn] = useState(today);
+  const [checkOut, setCheckOut] = useState(addDays(today, 1));
   const [guests, setGuests] = useState(2);
   const [checkInOpen, setCheckInOpen] = useState(false);
   const [checkOutOpen, setCheckOutOpen] = useState(false);

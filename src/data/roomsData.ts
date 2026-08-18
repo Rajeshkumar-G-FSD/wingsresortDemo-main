@@ -168,6 +168,26 @@ export const getRoomUnits = (room: RoomCategory): RoomUnit[] => {
   return [{ id: `${room.id}-main`, label: room.name }];
 };
 
+/**
+ * The subset of a category's room units guests are actually offered — narrower than `getRoomUnits`, which
+ * the admin dashboard still uses in full so pricing/blocking stays available for every physical room.
+ * Right now only Room 201 is bookable under 2BHK Villa, only Room 1 under 3BHK Villa, and the Family
+ * Room's one unit is surfaced as "Room 205" (its real physical room number, shared with the 2BHK building).
+ */
+export const getGuestRoomUnits = (room: RoomCategory): RoomUnit[] => {
+  const units = getRoomUnits(room);
+  if (room.id === '2bhk-villa') {
+    return units.filter((unit) => unit.label === 'Room 201');
+  }
+  if (room.id === '3bhk-villa') {
+    return units.filter((unit) => unit.label === 'Room 1');
+  }
+  if (room.id === 'family-room') {
+    return units.map((unit) => ({ ...unit, label: 'Room 205' }));
+  }
+  return units;
+};
+
 /** A unit's max guests — its own override if set, otherwise the category default. */
 export const getUnitMaxAdults = (room: RoomCategory, unit: RoomUnit): number => unit.maxAdults ?? room.maxAdults;
 

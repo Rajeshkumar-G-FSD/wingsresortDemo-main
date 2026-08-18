@@ -5,7 +5,7 @@ import { OurStory } from './components/OurStory';
 import { GoogleReviewsSection } from './components/GoogleReviewsSection';
 import { ResortMapSection } from './components/ResortMapSection';
 import { ConsultationCTA } from './components/ConsultationCTA';
-import { VillaModal } from './components/VillaModal';
+import { RoomDetailPage } from './components/RoomDetailPage';
 import { ExperienceModal } from './components/ExperienceModal';
 import { BookingModal } from './components/BookingModal';
 import { LoadingScreen } from './components/LoadingScreen';
@@ -83,7 +83,7 @@ export function App() {
 
   // Scroll-spy: highlight whichever nav item corresponds to the section currently in view.
   useEffect(() => {
-    if (activeServiceId || showRoomsPage || showAdminDashboard) return;
+    if (activeServiceId || showRoomsPage || showAdminDashboard || selectedRoom) return;
 
     let ticking = false;
     const HEADER_OFFSET = 140;
@@ -110,14 +110,15 @@ export function App() {
     updateActiveSection();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeServiceId, showRoomsPage, showAdminDashboard]);
+  }, [activeServiceId, showRoomsPage, showAdminDashboard, selectedRoom]);
 
   const handleNavigate = (sectionId: string) => {
     setActiveSection(sectionId);
-    if (activeServiceId || showRoomsPage || showAdminDashboard) {
+    if (activeServiceId || showRoomsPage || showAdminDashboard || selectedRoom) {
       setActiveServiceId(null);
       setShowRoomsPage(false);
       setShowAdminDashboard(false);
+      setSelectedRoom(null);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
@@ -175,6 +176,20 @@ export function App() {
     });
   };
 
+  const handleSelectRoom = (room: RoomCategory) => {
+    setSelectedRoom(room);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  };
+
+  const handleBackFromRoomDetail = () => {
+    setSelectedRoom(null);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById('villas')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  };
+
   const handleOpenAdmin = () => {
     setActiveServiceId(null);
     setShowRoomsPage(false);
@@ -222,6 +237,12 @@ export function App() {
             initialAdults={roomsSearch.adults}
             onBack={handleBackFromRooms}
           />
+        ) : selectedRoom ? (
+          <RoomDetailPage
+            room={selectedRoom}
+            onBack={handleBackFromRoomDetail}
+            onBookDirect={handleOpenBookingWithRoom}
+          />
         ) : activeServiceId ? (
           <ServiceDetailPage
             service={SERVICES.find((s) => s.id === activeServiceId) ?? SERVICES[0]}
@@ -241,7 +262,7 @@ export function App() {
 
             {/* Featured Villas & Spaces (Teal Dark Section) */}
             <FeaturedVillas
-              onSelectRoom={(r) => setSelectedRoom(r)}
+              onSelectRoom={handleSelectRoom}
               onBookRoomDirect={handleOpenBookingWithRoom}
               onCheckAvailability={handleCheckAvailability}
               onViewAllRooms={handleViewAllRooms}
@@ -288,12 +309,6 @@ export function App() {
       <Footer onNavigate={handleNavigate} />
 
       {/* Modals */}
-      <VillaModal
-        room={selectedRoom}
-        onClose={() => setSelectedRoom(null)}
-        onBookDirect={handleOpenBookingWithRoom}
-      />
-
       <ExperienceModal
         experience={selectedExperience}
         onClose={() => setSelectedExperience(null)}

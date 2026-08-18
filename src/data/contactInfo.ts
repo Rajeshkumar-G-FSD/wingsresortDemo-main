@@ -2,7 +2,7 @@ export const CONTACT_INFO = {
   phone: '9894088044',
   whatsapp: '9894088044',
   alternatePhone: '6383557951',
-  email: 'krazywingsresort@gmail.com',
+  email: 'reception@wingsresort.com',
   address: '190, A19, Ooty, Tamil Nadu 643001',
   workingHours: '24 hrs, Every day (Mon – Sun)',
   checkIn: '11:00 AM',

@@ -7,7 +7,7 @@ import {
   EXTRA_BED_CHARGE_PER_NIGHT,
   formatINR,
   getNightlyRate,
-  getRoomUnits,
+  getGuestRoomUnits,
   getUnitBedType,
   getUnitMaxAdults,
   isWeekendDate,
@@ -334,7 +334,7 @@ export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialChe
                   </div>
                   <div className="rounded-xl bg-[#f5f3f0] p-3 text-center">
                     <span className="material-symbols-outlined text-lg text-[#004449]">home_work</span>
-                    <span className="mt-1 block text-xs font-semibold text-[#004449]">{selectedRoom.roomCount} Available</span>
+                    <span className="mt-1 block text-xs font-semibold text-[#004449]">{getGuestRoomUnits(selectedRoom).length} Available</span>
                   </div>
                 </div>
 
@@ -345,11 +345,11 @@ export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialChe
                 </div>
 
                 {/* Individual rooms in this category */}
-                {selectedRoom.roomCount > 1 && (
+                {(selectedRoom.roomCount > 1 || selectedRoom.id === 'family-room') && (
                   <div className="mt-6">
                     <h4 className="mb-3 text-xs font-bold uppercase tracking-wide text-[#f06c52]">Available Rooms</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {getRoomUnits(selectedRoom).map((unit) => (
+                      {getGuestRoomUnits(selectedRoom).map((unit) => (
                         <div key={unit.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#e4e2df] bg-[#f5f3f0] px-4 py-2.5">
                           <div>
                             <span className="block text-xs font-bold text-[#004449]">{unit.label}</span>
