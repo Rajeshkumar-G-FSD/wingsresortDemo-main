@@ -41,6 +41,13 @@ const AMENITY_GROUPS: AmenityGroup[] = [
     ],
   },
   {
+    id: 'food-dining',
+    tabLabel: 'Food & Dining',
+    heading: 'Food & Dining',
+    icon: 'restaurant',
+    items: [{ icon: 'restaurant', label: 'Home Made Food', available: true }],
+  },
+  {
     id: 'general-services',
     tabLabel: 'General Services',
     heading: 'General Services',

@@ -7,7 +7,7 @@ import { ResortMapSection } from './components/ResortMapSection';
 import { ConsultationCTA } from './components/ConsultationCTA';
 import { RoomDetailPage } from './components/RoomDetailPage';
 import { ExperienceModal } from './components/ExperienceModal';
-import { BookingModal } from './components/BookingModal';
+import { BookingPage } from './components/BookingPage';
 import { LoadingScreen } from './components/LoadingScreen';
 import { FaqSection } from './components/FaqSection';
 import { PropertyDetails } from './components/PropertyDetails';
@@ -39,8 +39,6 @@ export function App() {
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
   const [bookingPreselectRoom, setBookingPreselectRoom] = useState<RoomCategory | null>(null);
-  const [bookingPreset, setBookingPreset] = useState<{ checkIn: string; checkOut: string; guests: number } | null>(null);
-  const [openCheckInTrigger, setOpenCheckInTrigger] = useState(0);
   const [showRoomsPage, setShowRoomsPage] = useState(false);
   const [roomsSearch, setRoomsSearch] = useState<{ checkIn: string; checkOut: string; adults: number }>({
     checkIn: '',
@@ -83,7 +81,7 @@ export function App() {
 
   // Scroll-spy: highlight whichever nav item corresponds to the section currently in view.
   useEffect(() => {
-    if (activeServiceId || showRoomsPage || showAdminDashboard || selectedRoom) return;
+    if (activeServiceId || showRoomsPage || showAdminDashboard || selectedRoom || isBookingOpen) return;
 
     let ticking = false;
     const HEADER_OFFSET = 140;
@@ -110,15 +108,16 @@ export function App() {
     updateActiveSection();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeServiceId, showRoomsPage, showAdminDashboard, selectedRoom]);
+  }, [activeServiceId, showRoomsPage, showAdminDashboard, selectedRoom, isBookingOpen]);
 
   const handleNavigate = (sectionId: string) => {
     setActiveSection(sectionId);
-    if (activeServiceId || showRoomsPage || showAdminDashboard || selectedRoom) {
+    if (activeServiceId || showRoomsPage || showAdminDashboard || selectedRoom || isBookingOpen) {
       setActiveServiceId(null);
       setShowRoomsPage(false);
       setShowAdminDashboard(false);
       setSelectedRoom(null);
+      setIsBookingOpen(false);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
@@ -145,14 +144,28 @@ export function App() {
     });
   };
 
+  // "Reserve Now" everywhere (header, hero, coral CTA banner) goes straight to the same booking page —
+  // no room pre-selected, so it opens on the accommodation dropdown's first option.
   const handleOpenConsultation = () => {
-    handleNavigate('villas');
-    setOpenCheckInTrigger((t) => t + 1);
+    setBookingPreselectRoom(null);
+    setIsBookingOpen(true);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
   };
 
   const handleOpenBookingWithRoom = (room: RoomCategory) => {
     setBookingPreselectRoom(room);
     setIsBookingOpen(true);
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  };
+
+  const handleBackFromBooking = () => {
+    setIsBookingOpen(false);
+    setBookingPreselectRoom(null);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById('villas')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
   };
 
   const handleCheckAvailability = (checkIn: string, checkOut: string, guests: number) => {
@@ -230,12 +243,18 @@ export function App() {
       <main>
         {showAdminDashboard ? (
           <AdminDashboardPage onLogout={handleAdminLogout} />
+        ) : isBookingOpen ? (
+          <BookingPage
+            room={bookingPreselectRoom}
+            onBack={handleBackFromBooking}
+          />
         ) : showRoomsPage ? (
           <RoomsPage
             initialCheckIn={roomsSearch.checkIn}
             initialCheckOut={roomsSearch.checkOut}
             initialAdults={roomsSearch.adults}
             onBack={handleBackFromRooms}
+            onBookRoom={handleOpenBookingWithRoom}
           />
         ) : selectedRoom ? (
           <RoomDetailPage
@@ -249,11 +268,7 @@ export function App() {
             relatedServices={SERVICES.filter((s) => s.id !== activeServiceId)}
             onBack={handleBackFromService}
             onSelectService={handleSelectService}
-            onOpenBooking={() => {
-              setBookingPreselectRoom(null);
-              setBookingPreset(null);
-              setIsBookingOpen(true);
-            }}
+            onOpenBooking={handleOpenConsultation}
           />
         ) : (
           <>
@@ -266,7 +281,6 @@ export function App() {
               onBookRoomDirect={handleOpenBookingWithRoom}
               onCheckAvailability={handleCheckAvailability}
               onViewAllRooms={handleViewAllRooms}
-              openCheckInTrigger={openCheckInTrigger}
             />
 
             {/* Our Story / Founders */}
@@ -314,22 +328,8 @@ export function App() {
         onClose={() => setSelectedExperience(null)}
         onOpenBooking={() => {
           setSelectedExperience(null);
-          setBookingPreset(null);
-          setIsBookingOpen(true);
+          handleOpenConsultation();
         }}
-      />
-
-      <BookingModal
-        isOpen={isBookingOpen}
-        onClose={() => {
-          setIsBookingOpen(false);
-          setBookingPreselectRoom(null);
-          setBookingPreset(null);
-        }}
-        preselectedRoom={bookingPreselectRoom}
-        presetCheckIn={bookingPreset?.checkIn}
-        presetCheckOut={bookingPreset?.checkOut}
-        presetGuests={bookingPreset?.guests}
       />
 
       <AdminLoginModal

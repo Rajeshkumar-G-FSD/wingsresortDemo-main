@@ -13,7 +13,6 @@ import {
   isWeekendDate,
 } from '../data/roomsData';
 import { DatePickerPopover, toISO } from './DatePickerPopover';
-import { RoomBookingModal } from './RoomBookingModal';
 import BlurText from './BlurText';
 
 interface RoomsPageProps {
@@ -21,6 +20,8 @@ interface RoomsPageProps {
   initialCheckOut: string;
   initialAdults: number;
   onBack: () => void;
+  /** Navigates to the shared full-page booking flow for this room — same page every "Book Now"/"Reserve Now" uses. */
+  onBookRoom: (room: RoomCategory) => void;
 }
 
 const addDays = (iso: string, days: number) => {
@@ -32,7 +33,7 @@ const addDays = (iso: string, days: number) => {
 const today = toISO(new Date());
 const CARDS_PER_ROW = 3;
 
-export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialCheckOut, initialAdults, onBack }) => {
+export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialCheckOut, initialAdults, onBack, onBookRoom }) => {
   const [checkIn, setCheckIn] = useState(initialCheckIn || today);
   const [checkOut, setCheckOut] = useState(initialCheckOut || addDays(today, 1));
   const [adults, setAdults] = useState(Math.max(1, initialAdults || 2));
@@ -42,7 +43,6 @@ export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialChe
 
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
-  const [bookingRoom, setBookingRoom] = useState<RoomCategory | null>(null);
   const [revealedIds, setRevealedIds] = useState<Set<string>>(new Set());
 
   const detailRef = useRef<HTMLDivElement>(null);
@@ -272,7 +272,7 @@ export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialChe
                         View Details
                       </button>
                       <button
-                        onClick={() => setBookingRoom(room)}
+                        onClick={() => onBookRoom(room)}
                         className="flex-1 rounded-full coral-gradient px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-white shadow transition-opacity hover:opacity-90"
                       >
                         Book Now
@@ -387,7 +387,7 @@ export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialChe
                 </ul>
 
                 <button
-                  onClick={() => setBookingRoom(selectedRoom)}
+                  onClick={() => selectedRoom && onBookRoom(selectedRoom)}
                   className="mt-6 w-full rounded-full coral-gradient py-4 text-xs font-bold uppercase tracking-widest text-white shadow-lg transition hover:opacity-90 sm:w-auto sm:px-10"
                 >
                   Book This Room
@@ -397,14 +397,6 @@ export const RoomsPage: React.FC<RoomsPageProps> = ({ initialCheckIn, initialChe
           </div>
         </section>
       )}
-
-      <RoomBookingModal
-        room={bookingRoom}
-        checkIn={checkIn}
-        checkOut={checkOut}
-        adults={adults}
-        onClose={() => setBookingRoom(null)}
-      />
     </div>
   );
 };

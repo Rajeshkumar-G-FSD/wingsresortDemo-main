@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { BookingRecord, BookingStatus } from '../types';
 import { subscribeToBookings, updateBookingStatus, deleteBooking } from '../lib/bookingsRepo';
 import { formatINR } from '../data/roomsData';
+import { CONTACT_INFO } from '../data/contactInfo';
 import { AdminRoomsPanel } from './AdminRoomsPanel';
 
 interface AdminDashboardPageProps {
@@ -59,10 +60,26 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onLogout
     return { total, pending, confirmed, revenue, unpaid };
   }, [bookings]);
 
-  const handleStatusChange = async (bookingId: string, status: BookingStatus) => {
-    setUpdatingId(bookingId);
+  const handleStatusChange = async (booking: BookingRecord, status: BookingStatus) => {
+    setUpdatingId(booking.id);
     try {
-      await updateBookingStatus(bookingId, status);
+      await updateBookingStatus(booking.id, status);
+      // Cancelling from the admin panel shares the full details to the resort's WhatsApp so
+      // whoever's on the ground knows immediately — no need to check the dashboard separately.
+      if (status === 'Cancelled') {
+        const ref = booking.id.slice(0, 8).toUpperCase();
+        const message = [
+          `Booking Cancelled — Ref ${ref}`,
+          `Room: ${booking.roomName}${booking.units && booking.units.length > 0 ? ` (${booking.units.join(', ')})` : ''}`,
+          `Stay: ${formatDate(booking.checkIn)} → ${formatDate(booking.checkOut)} (${booking.nights} night${booking.nights > 1 ? 's' : ''})`,
+          `Guest: ${booking.guestName}`,
+          `Phone: ${booking.guestPhone}`,
+          booking.guestEmail ? `Email: ${booking.guestEmail}` : null,
+          `Amount paid: ${formatINR(booking.amountPayingNow)} of ${formatINR(booking.total)} total`,
+          'Cancelled via the admin dashboard.',
+        ].filter(Boolean).join('\n');
+        window.open(`https://wa.me/91${CONTACT_INFO.whatsapp}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+      }
     } catch {
       setError('Could not update booking status. Please try again.');
     } finally {
@@ -230,7 +247,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({ onLogout
                         <select
                           value={b.status}
                           disabled={updatingId === b.id}
-                          onChange={(e) => handleStatusChange(b.id, e.target.value as BookingStatus)}
+                          onChange={(e) => handleStatusChange(b, e.target.value as BookingStatus)}
                           className={`rounded-full border-0 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide focus:outline-none focus:ring-2 focus:ring-[#004449]/30 ${STATUS_STYLES[b.status]}`}
                         >
                           {STATUS_OPTIONS.map((s) => (

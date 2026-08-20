@@ -1,0 +1,896 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { BookingMode, PaymentPlan, RoomBlock, RoomCategory } from '../types';
+import {
+  CAMPFIRE_CHARGE,
+  CANCELLATION_DAYS_BEFORE_CHECKIN,
+  CHILD_FREE_AGE,
+  EXTRA_BED_CHARGE_PER_NIGHT,
+  ROOM_CATEGORIES,
+  calculateNights,
+  calculateRoomSubtotal,
+  formatINR,
+  getNightlyBreakdown,
+  getGuestRoomUnits,
+  getUnitMaxAdults,
+} from '../data/roomsData';
+import { CONTACT_INFO } from '../data/contactInfo';
+import { PAYMENT_INFO, buildUpiPaymentString } from '../data/paymentInfo';
+import { DatePickerPopover, toISO } from './DatePickerPopover';
+import { QRCodeImage } from './QRCodeImage';
+import { createBooking } from '../lib/bookingsRepo';
+import { sendBookingEnquiryEmail } from '../lib/web3forms';
+import { subscribeToRoomBlocks } from '../lib/roomsRepo';
+import SplitText from './SplitText';
+import BlurText from './BlurText';
+
+/** A room unit is unavailable for a stay if any admin block on it overlaps the [checkIn, checkOut) range. */
+const unitOverlapsBlock = (block: RoomBlock, checkIn: string, checkOut: string): boolean =>
+  Boolean(checkIn && checkOut) && block.startDate < checkOut && block.endDate >= checkIn;
+
+interface BookingPageProps {
+  /** Pre-selected room, e.g. from a room's "Reserve Now". Null lets the guest pick via the dropdown below. */
+  room: RoomCategory | null;
+  initialCheckIn?: string;
+  initialCheckOut?: string;
+  initialAdults?: number;
+  onBack: () => void;
+}
+
+interface GuestFormState {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  specialRequests: string;
+}
+
+type GuestFormErrors = Partial<Record<keyof GuestFormState, string>>;
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_PATTERN = /^[0-9]{10}$/;
+
+const addDays = (iso: string, days: number) => {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  return toISO(d);
+};
+
+const today = toISO(new Date());
+
+const BOOKING_MODE_OPTIONS: { id: BookingMode; label: string; helper: string; icon: string }[] = [
+  { id: 'pay_now', label: 'Pay Now Online', helper: 'UPI, bank transfer or QR', icon: 'qr_code_2' },
+  { id: 'pay_at_resort', label: 'Pay at Resort', helper: 'Just book — settle in person', icon: 'storefront' },
+];
+
+const PAYMENT_PLAN_OPTIONS: { id: PaymentPlan; label: string; short: string }[] = [
+  { id: '40percent', label: 'Pay 40% Advance', short: '40% Advance' },
+  { id: 'full', label: 'Pay Full Amount', short: 'Full Amount' },
+  { id: 'custom', label: 'Custom Amount', short: 'Custom' },
+];
+
+/** Full-page booking flow — large hero for the selected room, then dates/rooms/guest/payment, shared by every "Reserve Now" and "Book Now" entry point on the site. */
+export const BookingPage: React.FC<BookingPageProps> = ({ room, initialCheckIn = '', initialCheckOut = '', initialAdults = 2, onBack }) => {
+  const [selectedRoomId, setSelectedRoomId] = useState(room?.id || ROOM_CATEGORIES[0].id);
+  const activeRoom = ROOM_CATEGORIES.find((r) => r.id === selectedRoomId) || ROOM_CATEGORIES[0];
+
+  const [checkIn, setCheckIn] = useState(initialCheckIn || today);
+  const [checkOut, setCheckOut] = useState(initialCheckOut || addDays(today, 1));
+  const [checkInOpen, setCheckInOpen] = useState(false);
+  const [checkOutOpen, setCheckOutOpen] = useState(false);
+
+  const [blocks, setBlocks] = useState<RoomBlock[]>([]);
+  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
+  const [adults, setAdults] = useState(Math.max(1, initialAdults));
+  const [children, setChildren] = useState(0);
+  const [extraBeds, setExtraBeds] = useState(0);
+  const [campfire, setCampfire] = useState(false);
+
+  const [guest, setGuest] = useState<GuestFormState>({ name: '', email: '', phone: '', address: '', specialRequests: '' });
+  const [errors, setErrors] = useState<GuestFormErrors>({});
+  const [occupancyError, setOccupancyError] = useState<string | null>(null);
+
+  const [bookingMode, setBookingMode] = useState<BookingMode>('pay_now');
+  const [paymentPlan, setPaymentPlan] = useState<PaymentPlan>('40percent');
+  const [customAmount, setCustomAmount] = useState('');
+  const [transactionId, setTransactionId] = useState('');
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [showZeroPaymentConfirm, setShowZeroPaymentConfirm] = useState(false);
+  const [showCancellationConfirm, setShowCancellationConfirm] = useState(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [bookingRef, setBookingRef] = useState<string | null>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+
+  // Room blocks are admin-set (maintenance, owner use); subscribed once so the unit picker below can grey them out live.
+  useEffect(() => {
+    const unsubscribe = subscribeToRoomBlocks(setBlocks, () => {});
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, [room?.id]);
+
+  // Reset the form whenever the selected accommodation changes — a fresh room means fresh unit choices.
+  useEffect(() => {
+    const roomUnits = getGuestRoomUnits(activeRoom);
+    const firstAvailable = roomUnits.find((u) => !blocks.some((b) => b.unitId === u.id && unitOverlapsBlock(b, checkIn, checkOut)));
+    setSelectedUnitIds(firstAvailable ? [firstAvailable.id] : roomUnits.length > 0 ? [roomUnits[0].id] : []);
+    setChildren(0);
+    setExtraBeds(0);
+    setCampfire(false);
+    setOccupancyError(null);
+    setBookingMode('pay_now');
+    setPaymentPlan('40percent');
+    setCustomAmount('');
+    setTransactionId('');
+    setPaymentError(null);
+    setShowZeroPaymentConfirm(false);
+    setSubmitError(null);
+    setSubmitted(false);
+    setBookingRef(null);
+    setIsSubmitting(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRoomId]);
+
+  // If a change of dates (or a fresh block coming in) makes a currently-selected room unavailable, drop it —
+  // guests should never be able to submit a booking for a room that's actually blocked.
+  useEffect(() => {
+    setSelectedUnitIds((prev) => prev.filter((unitId) => !blocks.some((b) => b.unitId === unitId && unitOverlapsBlock(b, checkIn, checkOut))));
+  }, [checkIn, checkOut, blocks]);
+
+  const units = getGuestRoomUnits(activeRoom);
+  const selectedUnits = units.filter((u) => selectedUnitIds.includes(u.id));
+  const unitDisplayLabels = selectedUnits.map((u) => (u.note ? `${u.label} (${u.note})` : u.label));
+  const quantity = selectedUnitIds.length;
+  const isUnitBlockedForStay = (unitId: string) => blocks.some((b) => b.unitId === unitId && unitOverlapsBlock(b, checkIn, checkOut));
+  const allUnitsBlocked = units.length > 0 && units.every((u) => isUnitBlockedForStay(u.id));
+
+  const toggleUnit = (unitId: string) => {
+    if (isUnitBlockedForStay(unitId)) return;
+    setSelectedUnitIds((prev) => (prev.includes(unitId) ? prev.filter((id) => id !== unitId) : [...prev, unitId]));
+    setOccupancyError(null);
+  };
+
+  const nights = calculateNights(checkIn, checkOut);
+  const breakdown = getNightlyBreakdown(activeRoom, checkIn, checkOut);
+  const roomSubtotal = calculateRoomSubtotal(activeRoom, checkIn, checkOut) * quantity;
+  const extraBedTotal = extraBeds * EXTRA_BED_CHARGE_PER_NIGHT * nights;
+  const campfireTotal = campfire ? CAMPFIRE_CHARGE : 0;
+  const total = roomSubtotal + extraBedTotal + campfireTotal;
+  const maxOccupancy = selectedUnits.reduce((sum, u) => sum + getUnitMaxAdults(activeRoom, u), 0);
+  const cancellationDeadline = checkIn ? addDays(checkIn, -CANCELLATION_DAYS_BEFORE_CHECKIN) : '';
+  // A free-cancellation window only exists if that deadline is still in the future — once check-in is
+  // within CANCELLATION_DAYS_BEFORE_CHECKIN days, the booking is non-refundable from the moment it's made,
+  // so there's no "cancel by X" deadline left to show.
+  const refundWindowApplies = Boolean(checkIn) && cancellationDeadline > today;
+
+  const advanceAmount = Math.round(total * 0.4);
+  const parsedCustomAmount = Number(customAmount);
+  const intendedAmount =
+    bookingMode !== 'pay_now' ? 0
+      : paymentPlan === 'full' ? total
+      : paymentPlan === '40percent' ? advanceAmount
+      : Number.isFinite(parsedCustomAmount) ? parsedCustomAmount : 0;
+  const hasTransactionProof = bookingMode === 'pay_now' && transactionId.trim().length >= 4;
+  const confirmedAmountNow = bookingMode === 'pay_now' && hasTransactionProof ? intendedAmount : 0;
+  const balanceDue = Math.max(0, total - confirmedAmountNow);
+  const upiPaymentString = total > 0 ? buildUpiPaymentString(intendedAmount || total, `${activeRoom.name} - Wings Resort`) : '';
+
+  const handleAdultsChange = (value: number) => {
+    const next = Math.max(1, value);
+    setAdults(next);
+    setOccupancyError(next > maxOccupancy ? `Maximum ${maxOccupancy} adult${maxOccupancy > 1 ? 's' : ''} for the ${quantity} room${quantity > 1 ? 's' : ''} selected.` : null);
+  };
+
+  const handleGuestChange = (field: keyof GuestFormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { value } = e.target;
+    setGuest((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (field === 'phone' && value.replace(/\D/g, '').length === 10) {
+      emailInputRef.current?.focus();
+    }
+  };
+
+  // Only name and phone are mandatory — email and address are optional, but still format-checked if filled in.
+  const validate = (): GuestFormErrors => {
+    const next: GuestFormErrors = {};
+    if (!guest.name.trim()) next.name = 'Please enter your name.';
+    if (!guest.phone.trim()) next.phone = 'Please enter your phone number.';
+    else if (!PHONE_PATTERN.test(guest.phone.trim().replace(/\s+/g, ''))) next.phone = 'Enter a valid 10-digit phone number.';
+    if (guest.email.trim() && !EMAIL_PATTERN.test(guest.email.trim())) next.email = 'Enter a valid email address.';
+    return next;
+  };
+
+  const runValidation = (): boolean => {
+    if (!checkIn || !checkOut || nights < 1) {
+      setOccupancyError('Please select valid check-in and check-out dates.');
+      return false;
+    }
+    if (selectedUnitIds.length === 0) {
+      setOccupancyError('Please select at least one room for your stay.');
+      return false;
+    }
+    if (adults > maxOccupancy) {
+      setOccupancyError(`Maximum ${maxOccupancy} adult${maxOccupancy > 1 ? 's' : ''} for the ${quantity} room${quantity > 1 ? 's' : ''} selected.`);
+      return false;
+    }
+    if (bookingMode === 'pay_now' && paymentPlan === 'custom') {
+      if (!parsedCustomAmount || parsedCustomAmount <= 0) {
+        setPaymentError('Enter the amount you’d like to pay now.');
+        return false;
+      }
+      if (parsedCustomAmount > total) {
+        setPaymentError(`Amount can’t exceed the total of ${formatINR(total)}.`);
+        return false;
+      }
+    }
+    setPaymentError(null);
+
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return false;
+    return true;
+  };
+
+  const performSubmit = async () => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const id = await createBooking({
+        roomId: activeRoom.id,
+        roomName: activeRoom.name,
+        checkIn,
+        checkOut,
+        nights,
+        quantity,
+        units: unitDisplayLabels,
+        adults,
+        children,
+        extraBeds,
+        campfire,
+        roomSubtotal,
+        extraBedTotal,
+        campfireTotal,
+        total,
+        bookingMode,
+        paymentPlan,
+        intendedAmount,
+        transactionId: transactionId.trim(),
+        amountPayingNow: confirmedAmountNow,
+        guestName: guest.name,
+        guestEmail: guest.email,
+        guestPhone: guest.phone,
+        guestAddress: guest.address,
+        specialRequests: guest.specialRequests,
+      });
+      const ref = id.slice(0, 8).toUpperCase();
+      setBookingRef(ref);
+
+      const message = [
+        `Hello Wings Resort! Here’s my booking for ${quantity} × ${activeRoom.name}.`,
+        `Booking Ref: ${ref}`,
+        `Room(s): ${unitDisplayLabels.join(', ')}`,
+        '',
+        `Check-in: ${checkIn}`,
+        `Check-out: ${checkOut} (${nights} night${nights > 1 ? 's' : ''})`,
+        `Adults: ${adults}${children > 0 ? `, Children: ${children}` : ''}`,
+        extraBeds > 0 ? `Extra beds: ${extraBeds}` : null,
+        campfire ? `Campfire experience: ${formatINR(CAMPFIRE_CHARGE)}` : null,
+        `Total amount: ${formatINR(total)}`,
+        bookingMode === 'pay_at_resort'
+          ? 'Payment: Pay at Resort (settling in person at check-in)'
+          : hasTransactionProof
+            ? `Paid now (${PAYMENT_PLAN_OPTIONS.find((p) => p.id === paymentPlan)?.label}): ${formatINR(confirmedAmountNow)}`
+            : `Intended to pay now (${PAYMENT_PLAN_OPTIONS.find((p) => p.id === paymentPlan)?.label}): ${formatINR(intendedAmount)} — no transaction ID given yet, recorded as ₹0 paid`,
+        balanceDue > 0 ? `Balance due: ${formatINR(balanceDue)}` : null,
+        bookingMode === 'pay_now' ? `Transaction ID: ${transactionId.trim() || 'Not provided yet'}` : null,
+        '',
+        `UPI: ${PAYMENT_INFO.upiId}`,
+        `Bank: ${PAYMENT_INFO.bankName}, A/C ${PAYMENT_INFO.accountNumber}, IFSC ${PAYMENT_INFO.ifsc}`,
+        '',
+        `Name: ${guest.name}`,
+        `Phone: ${guest.phone}`,
+        guest.email.trim() ? `Email: ${guest.email}` : null,
+        guest.address.trim() ? `Address: ${guest.address}` : null,
+        guest.specialRequests ? `Special requests: ${guest.specialRequests}` : null,
+        '',
+        refundWindowApplies
+          ? `Cancellation policy: Free cancellation up to ${CANCELLATION_DAYS_BEFORE_CHECKIN} days before check-in (by ${cancellationDeadline}). Cancellations within ${CANCELLATION_DAYS_BEFORE_CHECKIN} days of check-in are non-refundable.`
+          : `Cancellation policy: Check-in is within ${CANCELLATION_DAYS_BEFORE_CHECKIN} days, so this booking is non-refundable if cancelled.`,
+        '',
+        hasTransactionProof || bookingMode === 'pay_at_resort'
+          ? 'Please confirm my booking.'
+          : 'I’ll share my transaction ID / payment screenshot here once paid.',
+      ].filter(Boolean).join('\n');
+
+      window.open(`https://wa.me/91${CONTACT_INFO.whatsapp}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+
+      // Best-effort: also email reception via Web3Forms with the same details. Never blocks the booking or
+      // surfaces an error to the guest if it fails — WhatsApp is still the guaranteed channel.
+      sendBookingEnquiryEmail({
+        name: guest.name,
+        email: guest.email,
+        phone: guest.phone,
+        checkIn,
+        checkOut,
+        guests: adults + children,
+        message,
+        subject: `New Booking — ${activeRoom.name} (Ref ${ref})`,
+      }).catch(() => {});
+
+      setSubmitted(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setSubmitError('We could not save your booking just now. Please try again, or message us directly on WhatsApp.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const proceedPastCancellationPolicy = async () => {
+    if (bookingMode === 'pay_now' && !hasTransactionProof) {
+      setShowZeroPaymentConfirm(true);
+      return;
+    }
+    await performSubmit();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!runValidation()) return;
+    // Only worth alerting the guest to a refund deadline that still exists — skip straight through
+    // when check-in is already inside the non-refundable window.
+    if (refundWindowApplies) {
+      setShowCancellationConfirm(true);
+      return;
+    }
+    await proceedPastCancellationPolicy();
+  };
+
+  const handleAcknowledgeCancellationPolicy = async () => {
+    setShowCancellationConfirm(false);
+    await proceedPastCancellationPolicy();
+  };
+
+  return (
+    <div className="animate-fadeIn bg-[#fbf9f6] text-[#004449]">
+      {/* Hero */}
+      <section className="relative flex min-h-[52vh] items-end overflow-hidden sm:min-h-[58vh]">
+        <img src={activeRoom.heroImage} alt={activeRoom.name} className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#004449]/94 via-[#004449]/50 to-[#004449]/15" />
+
+        <div className="absolute top-24 left-0 right-0 z-10 px-5 md:px-12">
+          <div className="mx-auto flex max-w-[900px] items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-white/75">
+            <button onClick={onBack} className="hover:text-[#F0801A] transition-colors">Home</button>
+            <span className="material-symbols-outlined text-sm">chevron_right</span>
+            <span className="text-white">Book Your Stay</span>
+          </div>
+        </div>
+
+        <div className="relative z-10 mx-auto w-full max-w-[900px] px-5 pb-12 sm:pb-16 md:px-12">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#F5A23A]">{activeRoom.badge} · Wings Resort</p>
+          <SplitText
+            text={activeRoom.name}
+            tag="h1"
+            splitType="words"
+            delay={45}
+            duration={0.8}
+            ease="power3.out"
+            from={{ opacity: 0, y: 32 }}
+            to={{ opacity: 1, y: 0 }}
+            threshold={0.1}
+            rootMargin="-40px"
+            textAlign="left"
+            repeat={false}
+            className="font-headline text-3xl font-medium text-white sm:text-4xl lg:text-5xl"
+          />
+          <BlurText
+            text={activeRoom.tagline}
+            animateBy="words"
+            direction="top"
+            delay={22}
+            startDelay={0.35}
+            repeat={false}
+            className="mt-3 max-w-xl text-sm leading-relaxed text-white/85"
+          />
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-[900px] px-5 py-10 md:px-12 md:py-14">
+        {submitted ? (
+          <div className="space-y-6 rounded-3xl border border-[#e4e2df] bg-white p-8 text-center shadow-sm sm:p-12">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#F0801A]/10 text-[#F0801A]">
+              <span className="material-symbols-outlined text-5xl">task_alt</span>
+            </div>
+            <h3 className="font-headline text-2xl font-bold text-[#004449] sm:text-3xl">Your Request Is On Its Way</h3>
+            {bookingRef && (
+              <p className="inline-block rounded-full bg-[#f5f3f0] px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-[#004449]">
+                Booking Ref: {bookingRef}
+              </p>
+            )}
+            <p className="mx-auto max-w-md text-sm leading-relaxed text-[#6f797a]">
+              {bookingMode === 'pay_at_resort'
+                ? `We saved your ${activeRoom.name} booking for ${checkIn} to ${checkOut} and opened WhatsApp with the full bill. You can pay the full amount directly at the resort during check-in.`
+                : hasTransactionProof
+                  ? `We saved your ${activeRoom.name} booking for ${checkIn} to ${checkOut} and opened WhatsApp with the full bill and your transaction ID. Our team will verify and confirm shortly.`
+                  : `We saved your ${activeRoom.name} booking for ${checkIn} to ${checkOut} as an unpaid request and opened WhatsApp with the bill. Scan the QR or use the UPI/bank details to pay ${formatINR(intendedAmount)}, then share your transaction ID on WhatsApp so we can confirm it.`}
+            </p>
+            <button onClick={onBack} className="rounded-full coral-gradient px-8 py-3.5 text-xs font-semibold uppercase tracking-wider text-white shadow-lg">
+              Back to Home
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
+            {/* Accommodation selector — lets any "Reserve Now" entry point land on the same page */}
+            <div>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#F0801A]">Select Accommodation</label>
+              <select
+                value={selectedRoomId}
+                onChange={(e) => setSelectedRoomId(e.target.value)}
+                className="w-full rounded-full border border-[#e4e2df] bg-white p-3 text-xs font-medium text-[#004449] focus:outline-none focus:border-[#F0801A]"
+              >
+                {ROOM_CATEGORIES.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name} ({formatINR(r.weekdayPrice)}/night)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Dates */}
+            <div>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#F0801A]">Your Stay</label>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <DatePickerPopover
+                  label="Check-In"
+                  icon="calendar_month"
+                  value={checkIn}
+                  minDate={today}
+                  onSelect={(date) => {
+                    setCheckIn(date);
+                    setCheckInOpen(false);
+                    if (checkOut && new Date(checkOut) <= new Date(date)) setCheckOut(addDays(date, 1));
+                  }}
+                  open={checkInOpen}
+                  onOpenChange={(o) => { setCheckInOpen(o); if (o) setCheckOutOpen(false); }}
+                />
+                <DatePickerPopover
+                  label="Check-Out"
+                  icon="event_available"
+                  value={checkOut}
+                  minDate={checkIn ? addDays(checkIn, 1) : today}
+                  onSelect={(date) => { setCheckOut(date); setCheckOutOpen(false); }}
+                  open={checkOutOpen}
+                  onOpenChange={(o) => { setCheckOutOpen(o); if (o) setCheckInOpen(false); }}
+                />
+              </div>
+            </div>
+
+            {/* Room selection — specific units, so blocked rooms can't be picked */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#F0801A]">Select Room(s)</label>
+                <span className="rounded-full bg-[#f5f3f0] px-2.5 py-1 text-[10px] font-bold text-[#004449]">{quantity} selected</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                {units.map((unit) => {
+                  const blocked = isUnitBlockedForStay(unit.id);
+                  const isSelected = selectedUnitIds.includes(unit.id);
+                  const unitMax = getUnitMaxAdults(activeRoom, unit);
+                  return (
+                    <button
+                      key={unit.id}
+                      type="button"
+                      disabled={blocked}
+                      onClick={() => toggleUnit(unit.id)}
+                      className={`relative flex h-full flex-col items-start gap-0.5 rounded-xl border px-3.5 py-3 text-left transition-colors ${
+                        blocked
+                          ? 'cursor-not-allowed border-[#e4e2df]/60 bg-[#f5f3f0]/40 opacity-50'
+                          : isSelected
+                            ? 'border-[#F0801A] bg-[#F0801A] text-[#2B1810] shadow-md'
+                            : 'border-[#e4e2df] bg-[#f5f3f0] text-[#004449] hover:border-[#F0801A]'
+                      }`}
+                    >
+                      {isSelected && !blocked && (
+                        <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#2B1810] text-[#F0801A]">
+                          <span className="material-symbols-outlined text-[11px]">check</span>
+                        </span>
+                      )}
+                      <span className="pr-4 text-xs font-bold leading-tight">{unit.label}</span>
+                      <span className={`text-[10px] leading-snug ${isSelected ? 'text-[#2B1810]/70' : 'text-[#6f797a]/70'}`}>
+                        {blocked ? 'Not available' : `Up to ${unitMax} adult${unitMax > 1 ? 's' : ''}`}{!blocked && unit.note ? ` · ${unit.note}` : ''}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {allUnitsBlocked && (
+                <p className="mt-2 text-xs font-semibold text-[#c0392b]">All {activeRoom.name} rooms are unavailable for these dates. Please try different dates.</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <div>
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F0801A]">Adults</label>
+                <div className="flex items-center rounded-xl border border-[#e4e2df] bg-[#f5f3f0]">
+                  <button type="button" onClick={() => handleAdultsChange(adults - 1)} className="px-3 py-2.5 text-[#004449] disabled:opacity-30" disabled={adults <= 1}>−</button>
+                  <span className="flex-1 text-center text-sm font-semibold text-[#004449]">{adults}</span>
+                  <button type="button" onClick={() => handleAdultsChange(adults + 1)} className="px-3 py-2.5 text-[#004449]">+</button>
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F0801A]">Children</label>
+                <div className="flex items-center rounded-xl border border-[#e4e2df] bg-[#f5f3f0]">
+                  <button type="button" onClick={() => setChildren(Math.max(0, children - 1))} className="px-3 py-2.5 text-[#004449] disabled:opacity-30" disabled={children <= 0}>−</button>
+                  <span className="flex-1 text-center text-sm font-semibold text-[#004449]">{children}</span>
+                  <button type="button" onClick={() => setChildren(children + 1)} className="px-3 py-2.5 text-[#004449]">+</button>
+                </div>
+              </div>
+              {activeRoom.extraBedAllowed && (
+                <div>
+                  <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wide text-[#F0801A]">Extra Beds</label>
+                  <div className="flex items-center rounded-xl border border-[#e4e2df] bg-[#f5f3f0]">
+                    <button type="button" onClick={() => setExtraBeds(Math.max(0, extraBeds - 1))} className="px-3 py-2.5 text-[#004449] disabled:opacity-30" disabled={extraBeds <= 0}>−</button>
+                    <span className="flex-1 text-center text-sm font-semibold text-[#004449]">{extraBeds}</span>
+                    <button type="button" onClick={() => setExtraBeds(Math.min(3, extraBeds + 1))} className="px-3 py-2.5 text-[#004449]">+</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            {occupancyError && <p className="text-xs font-semibold text-[#c0392b]">{occupancyError}</p>}
+            <p className="text-xs text-[#6f797a]/70">Children below {CHILD_FREE_AGE} years stay free. Combined capacity of the room(s) you select: {maxOccupancy} adult{maxOccupancy > 1 ? 's' : ''}.</p>
+
+            {/* Campfire add-on */}
+            <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-[#e4e2df] bg-[#f5f3f0] px-4 py-3">
+              <span className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-lg text-[#F0801A]">local_fire_department</span>
+                <span>
+                  <span className="block text-xs font-bold text-[#004449]">Add Campfire Experience</span>
+                  <span className="block text-[11px] text-[#6f797a]/70">One-time evening campfire, {formatINR(CAMPFIRE_CHARGE)}</span>
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                checked={campfire}
+                onChange={(e) => setCampfire(e.target.checked)}
+                className="h-4 w-4 accent-[#F0801A]"
+              />
+            </label>
+
+            {/* Guest details */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Full Name</label>
+                <input
+                  type="text"
+                  value={guest.name}
+                  onChange={handleGuestChange('name')}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.name ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
+                  placeholder="Your name"
+                />
+                {errors.name && <p className="mt-1 text-xs text-[#c0392b]">{errors.name}</p>}
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Phone</label>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  value={guest.phone}
+                  onChange={handleGuestChange('phone')}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.phone ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
+                  placeholder="10-digit mobile number"
+                />
+                {errors.phone && <p className="mt-1 text-xs text-[#c0392b]">{errors.phone}</p>}
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Email (optional)</label>
+                <input
+                  ref={emailInputRef}
+                  type="email"
+                  value={guest.email}
+                  onChange={handleGuestChange('email')}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.email ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
+                  placeholder="you@example.com"
+                />
+                {errors.email && <p className="mt-1 text-xs text-[#c0392b]">{errors.email}</p>}
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Address (optional)</label>
+                <input
+                  type="text"
+                  value={guest.address}
+                  onChange={handleGuestChange('address')}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${errors.address ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
+                  placeholder="City, State"
+                />
+                {errors.address && <p className="mt-1 text-xs text-[#c0392b]">{errors.address}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Special Requests (optional)</label>
+              <textarea
+                rows={2}
+                value={guest.specialRequests}
+                onChange={handleGuestChange('specialRequests')}
+                className="w-full resize-none rounded-xl border border-[#e4e2df] px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30"
+                placeholder="Celebrating something? Need an early check-in? Let us know."
+              />
+            </div>
+
+            {/* Booking mode: Pay Now vs Pay at Resort */}
+            <div>
+              <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#F0801A]">How Would You Like to Book?</label>
+              <div className="grid grid-cols-2 gap-2">
+                {BOOKING_MODE_OPTIONS.map((option) => {
+                  const isActive = bookingMode === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => { setBookingMode(option.id); setPaymentError(null); }}
+                      className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-colors ${
+                        isActive ? 'border-[#F0801A] bg-[#F0801A] text-[#2B1810]' : 'border-[#e4e2df] bg-[#f5f3f0] text-[#004449] hover:border-[#F0801A]'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-lg">{option.icon}</span>
+                      <span>
+                        <span className="block text-xs font-bold">{option.label}</span>
+                        <span className={`block text-[10px] ${isActive ? 'text-white/75' : 'text-[#6f797a]/70'}`}>{option.helper}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {bookingMode === 'pay_at_resort' ? (
+                <p className="mt-3 rounded-xl bg-[#f5f3f0] px-4 py-3 text-xs text-[#004449]">
+                  You'll pay the full amount of <strong>{formatINR(total)}</strong> directly at the resort during check-in. No payment needed now — we'll just reserve your dates.
+                </p>
+              ) : (
+                <>
+                  {/* Compact payment plan row */}
+                  <div className="mt-3 flex gap-2">
+                    {PAYMENT_PLAN_OPTIONS.map((option) => {
+                      const isActive = paymentPlan === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => { setPaymentPlan(option.id); setPaymentError(null); }}
+                          className={`flex-1 rounded-full border px-3 py-2 text-center text-[11px] font-bold transition-colors ${
+                            isActive ? 'border-[#F0801A] bg-[#F0801A] text-[#2B1810]' : 'border-[#e4e2df] bg-[#f5f3f0] text-[#004449] hover:border-[#F0801A]'
+                          }`}
+                        >
+                          {option.short}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {paymentPlan === 'custom' && (
+                    <div className="mt-3">
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Amount to Pay Now (₹)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={total}
+                        value={customAmount}
+                        onChange={(e) => { setCustomAmount(e.target.value); setPaymentError(null); }}
+                        className={`w-full rounded-xl border px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30 ${paymentError ? 'border-[#c0392b]' : 'border-[#e4e2df]'}`}
+                        placeholder={`Up to ${formatINR(total)}`}
+                      />
+                    </div>
+                  )}
+                  {paymentError && <p className="mt-1.5 text-xs font-semibold text-[#c0392b]">{paymentError}</p>}
+
+                  <div className="mt-3">
+                    <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#F0801A]">Transaction ID / UTR Reference</label>
+                    <input
+                      type="text"
+                      value={transactionId}
+                      onChange={(e) => setTransactionId(e.target.value)}
+                      className="w-full rounded-xl border border-[#e4e2df] px-4 py-3 text-sm text-[#004449] focus:outline-none focus:ring-2 focus:ring-[#F0801A]/30"
+                      placeholder="Paid already? Enter your UPI/bank reference number"
+                    />
+                    <p className="mt-1.5 text-[11px] text-[#6f797a]/70">
+                      Already paid via the QR/UPI/bank details below? Enter the transaction ID so we can confirm it instantly. Without one, this booking is recorded as unpaid until you share it.
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Stay details summary / bill */}
+            <div className="rounded-2xl border border-[#e4e2df] bg-[#f5f3f0] p-5 sm:p-6">
+              <p className="mb-4 border-b border-[#e4e2df] pb-3 text-xs font-bold uppercase tracking-widest text-[#004449]">Stay Details Summary</p>
+
+              <div className="mb-4 flex items-center gap-3">
+                <img src={activeRoom.heroImage} alt={activeRoom.name} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+                <div>
+                  <span className="block text-[10px] font-bold uppercase tracking-wide text-[#F0801A]">Selected Suite</span>
+                  <span className="block text-sm font-bold text-[#004449]">{activeRoom.name}</span>
+                  <span className="block text-xs text-[#6f797a]/70">{formatINR(activeRoom.weekdayPrice)} / night onwards</span>
+                </div>
+              </div>
+
+              <div className="mb-3 space-y-1.5 text-xs">
+                <div className="flex justify-between"><span className="text-[#6f797a]/70">Stay Duration</span><span className="font-bold text-[#004449]">{nights} Night{nights > 1 ? 's' : ''}</span></div>
+                <div className="flex justify-between"><span className="text-[#6f797a]/70">Stay Dates</span><span className="font-bold text-[#004449]">{checkIn || '—'} to {checkOut || '—'}</span></div>
+              </div>
+
+              <div className="mb-3 grid grid-cols-2 gap-3 rounded-xl bg-white p-3 text-xs">
+                <div><span className="block text-[#6f797a]/70">Adults</span><span className="font-bold text-[#004449]">{adults}</span></div>
+                <div><span className="block text-[#6f797a]/70">Total Guests</span><span className="font-bold text-[#004449]">{adults + children}</span></div>
+              </div>
+
+              <div className="mb-3 flex justify-between text-xs"><span className="text-[#6f797a]/70">Room(s) Booked</span><span className="font-bold text-[#004449]">{unitDisplayLabels.join(', ') || '—'}</span></div>
+
+              <div className="space-y-2 rounded-xl bg-white p-4 text-xs">
+                {breakdown.map((night) => (
+                  <div key={night.date} className="flex justify-between text-[#6f797a]">
+                    <span>
+                      {night.date} {night.isWeekend && <span className="ml-1 rounded-full bg-[#F0801A]/15 px-2 py-0.5 text-[9px] font-bold uppercase text-[#F0801A]">Weekend</span>}
+                    </span>
+                    <span>{formatINR(night.rate)} × {quantity}</span>
+                  </div>
+                ))}
+                {extraBeds > 0 && (
+                  <div className="flex justify-between text-[#6f797a]">
+                    <span>Extra bed ({extraBeds} × {nights} night{nights > 1 ? 's' : ''})</span>
+                    <span>{formatINR(extraBedTotal)}</span>
+                  </div>
+                )}
+                {campfire && (
+                  <div className="flex justify-between text-[#6f797a]">
+                    <span>Campfire Experience</span>
+                    <span>{formatINR(campfireTotal)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-[#e4e2df] pt-2 text-sm font-bold text-[#004449]">
+                  <span>TOTAL</span>
+                  <span>{formatINR(total)}</span>
+                </div>
+
+                <div className="mt-1 border-t border-[#e4e2df] pt-2">
+                  <span className="block text-[10px] font-bold uppercase tracking-wide text-[#6f797a]/70">
+                    {bookingMode === 'pay_at_resort' ? 'Pay at Resort' : PAYMENT_PLAN_OPTIONS.find((p) => p.id === paymentPlan)?.label}
+                  </span>
+                  {bookingMode === 'pay_at_resort' ? (
+                    <div className="mt-1 flex justify-between">
+                      <span className="font-bold text-[#004449]">Due at Check-In</span>
+                      <span className="font-bold text-[#004449]">{formatINR(total)}</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="mt-1 flex justify-between">
+                        <span className="font-bold text-[#F0801A]">{hasTransactionProof ? 'Paid Now' : 'Intended (Unconfirmed)'}</span>
+                        <span className="font-bold text-[#F0801A]">{formatINR((hasTransactionProof ? confirmedAmountNow : intendedAmount) || 0)}</span>
+                      </div>
+                      {!hasTransactionProof && (
+                        <p className="mt-1 text-[10px] font-semibold text-[#c17a1f]">No transaction ID yet — this books as ₹0 paid until you add one.</p>
+                      )}
+                      {balanceDue > 0 && hasTransactionProof && (
+                        <div className="mt-1 flex justify-between text-[#6f797a]/70">
+                          <span>Balance at property</span>
+                          <span>{formatINR(balanceDue)}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#6f797a]/70">
+              {refundWindowApplies ? (
+                <>Free, full refund if you cancel by <strong className="text-[#004449]">{cancellationDeadline}</strong> ({CANCELLATION_DAYS_BEFORE_CHECKIN} days before check-in). Cancellations after that are <strong className="text-[#c0392b]">non-refundable</strong>.</>
+              ) : (
+                <>Check-in is within {CANCELLATION_DAYS_BEFORE_CHECKIN} days, so this booking is <strong className="text-[#c0392b]">non-refundable</strong> if cancelled.</>
+              )}
+            </p>
+
+            {/* Payment details: QR + bank/UPI */}
+            {bookingMode === 'pay_now' && (
+              <div className="rounded-2xl border border-[#e4e2df] bg-[#f5f3f0] p-4 sm:p-5">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#004449]">Scan &amp; Pay</p>
+                <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+                  <div className="shrink-0 rounded-xl border border-[#e4e2df] bg-white p-2">
+                    <QRCodeImage value={upiPaymentString || PAYMENT_INFO.upiId} size={140} />
+                  </div>
+                  <div className="w-full space-y-1.5 text-xs text-[#6f797a]">
+                    <div className="flex justify-between"><span className="text-[#6f797a]/70">Merchant</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.payeeName}</span></div>
+                    <div className="flex justify-between"><span className="text-[#6f797a]/70">UPI ID</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.upiId}</span></div>
+                    <div className="flex justify-between"><span className="text-[#6f797a]/70">Bank</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.bankName}</span></div>
+                    <div className="flex justify-between"><span className="text-[#6f797a]/70">Account No.</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.accountNumber}</span></div>
+                    <div className="flex justify-between"><span className="text-[#6f797a]/70">IFSC</span><span className="font-semibold text-[#004449]">{PAYMENT_INFO.ifsc}</span></div>
+                    <div className="flex justify-between"><span className="text-[#6f797a]/70">Full payment</span><span className="font-semibold text-[#0e5d63]">Available</span></div>
+                    <p className="pt-1.5 text-[11px] leading-relaxed text-[#6f797a]/70">
+                      Scan with GPay, PhonePe, Paytm or any UPI app, or transfer directly via bank details. After paying, enter your transaction ID above so we can confirm your booking.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {submitError && <p className="text-xs font-semibold text-[#c0392b]">{submitError}</p>}
+
+            <button
+              type="submit"
+              disabled={isSubmitting || selectedUnitIds.length === 0}
+              className="w-full rounded-full bg-[#F0801A] py-4 text-xs font-bold uppercase tracking-widest text-[#2B1810] shadow-lg transition hover:bg-[#F5A23A] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSubmitting ? 'Saving your booking…' : 'Confirm Booking & Send Bill via WhatsApp'}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Cancellation policy alert — shown before every booking is saved, so the guest sees it before confirming */}
+      {showCancellationConfirm && (
+        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-6" onClick={() => setShowCancellationConfirm(false)}>
+          <div className="w-full max-w-sm rounded-2xl border border-[#e4e2df] bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#eef3f2] text-[#004449]">
+              <span className="material-symbols-outlined text-2xl">event_busy</span>
+            </div>
+            <h3 className="text-center font-headline text-lg font-bold text-[#004449]">Cancellation Policy</h3>
+            <p className="mt-2 text-center text-xs leading-relaxed text-[#6f797a]">
+              Cancel by <strong className="text-[#004449]">{cancellationDeadline || 'the deadline'}</strong> ({CANCELLATION_DAYS_BEFORE_CHECKIN} days before check-in) for a <strong className="text-[#004449]">full refund</strong>. Cancellations within {CANCELLATION_DAYS_BEFORE_CHECKIN} days of check-in are <strong className="text-[#c0392b]">non-refundable</strong>. This is also included in the WhatsApp message we send you after booking.
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCancellationConfirm(false)}
+                className="w-full rounded-full border border-[#e4e2df] py-3 text-xs font-bold uppercase tracking-wide text-[#6f797a] hover:bg-[#f5f3f0]"
+              >
+                Go Back
+              </button>
+              <button
+                type="button"
+                onClick={handleAcknowledgeCancellationPolicy}
+                className="w-full rounded-full bg-[#F0801A] py-3 text-xs font-bold uppercase tracking-wide text-[#2B1810] hover:bg-[#F5A23A]"
+              >
+                I Understand, Continue Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Zero-payment confirmation alert */}
+      {showZeroPaymentConfirm && (
+        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-6" onClick={() => setShowZeroPaymentConfirm(false)}>
+          <div className="w-full max-w-sm rounded-2xl border border-[#e4e2df] bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#f5e6c8] text-[#8a6d1f]">
+              <span className="material-symbols-outlined text-2xl">warning</span>
+            </div>
+            <h3 className="text-center font-headline text-lg font-bold text-[#004449]">No Transaction ID Added</h3>
+            <p className="mt-2 text-center text-xs leading-relaxed text-[#6f797a]">
+              You haven't entered a transaction ID, so this booking will be recorded as <strong>₹0 paid</strong> until you confirm payment. You can still book now and pay later.
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => setShowZeroPaymentConfirm(false)}
+                className="w-full rounded-full border border-[#F0801A] py-3 text-xs font-bold uppercase tracking-wide text-[#F0801A] hover:bg-[#F0801A] hover:text-white"
+              >
+                Go Back &amp; Add Transaction ID
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowZeroPaymentConfirm(false); performSubmit(); }}
+                className="w-full rounded-full bg-[#F0801A] py-3 text-xs font-bold uppercase tracking-wide text-[#2B1810] hover:bg-[#F5A23A]"
+              >
+                Continue Without Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

@@ -33,7 +33,6 @@ interface FeaturedVillasProps {
   onBookRoomDirect: (room: RoomCategory) => void;
   onCheckAvailability: (checkIn: string, checkOut: string, guests: number) => void;
   onViewAllRooms: () => void;
-  openCheckInTrigger?: number;
 }
 
 export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
@@ -41,7 +40,6 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   onBookRoomDirect,
   onCheckAvailability,
   onViewAllRooms,
-  openCheckInTrigger
 }) => {
   const [checkIn, setCheckIn] = useState(today);
   const [checkOut, setCheckOut] = useState(addDays(today, 1));
@@ -52,7 +50,6 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
   const guestsRef = useRef<HTMLDivElement>(null);
   const propertiesRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const lastHandledTrigger = useRef(openCheckInTrigger);
 
   useEffect(() => {
     if (!guestsOpen) return;
@@ -64,16 +61,6 @@ export const FeaturedVillas: React.FC<FeaturedVillasProps> = ({
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [guestsOpen]);
-
-  useEffect(() => {
-    if (openCheckInTrigger === undefined || openCheckInTrigger === lastHandledTrigger.current) return;
-    lastHandledTrigger.current = openCheckInTrigger;
-    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setCheckOutOpen(false);
-    setGuestsOpen(false);
-    const timer = window.setTimeout(() => setCheckInOpen(true), 450);
-    return () => window.clearTimeout(timer);
-  }, [openCheckInTrigger]);
 
   const handleCheckInSelect = (date: string) => {
     setCheckIn(date);
